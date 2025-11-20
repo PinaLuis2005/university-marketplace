@@ -45,7 +45,11 @@
 
     <section class="item-layout">
       <div class="gallery section-card">
-        <div class="main-image listing-image-container" id="mainImage">Main Image</div>
+        <div class="main-image carousel-shell">
+          <button class="carousel-arrow prev" type="button" aria-label="Previous image" id="prevImage">&#8592;</button>
+          <div class="main-image-stage listing-image-container" id="mainImage">Main Image</div>
+          <button class="carousel-arrow next" type="button" aria-label="Next image" id="nextImage">&#8594;</button>
+        </div>
         <div class="thumbnails" id="thumbnails"></div>
       </div>
 
@@ -89,6 +93,8 @@
 
     const mainImage = document.getElementById("mainImage");
     const thumbnails = document.getElementById("thumbnails");
+    const prevBtn = document.getElementById("prevImage");
+    const nextBtn = document.getElementById("nextImage");
 
     let images = [];
     if (item.images && item.images.length > 0) {
@@ -97,22 +103,55 @@
       images = [item.image];
     }
 
+    let currentIndex = 0;
+
+    const renderMainImage = () => {
+      const currentSrc = images[currentIndex];
+      mainImage.innerHTML = currentSrc
+        ? `<img src="${currentSrc}" alt="${item.title}" class="fade-image">`
+        : "No Image";
+
+      const imgEl = mainImage.querySelector("img");
+      if (imgEl) {
+        requestAnimationFrame(() => imgEl.classList.add("visible"));
+      }
+
+      document.querySelectorAll(".thumbnail").forEach((thumb, index) => {
+        thumb.classList.toggle("active", index === currentIndex);
+      });
+    };
+
     if (images.length > 0) {
-      mainImage.innerHTML = `<img src="${images[0]}" alt="${item.title}">`;
       thumbnails.innerHTML = images
         .map(
-          img =>
-            `<button class="thumbnail" type="button"><img src="${img}" alt="${item.title}"></button>`
+          (img, index) =>
+            `<button class="thumbnail" type="button" aria-label="View image ${index + 1}"><img src="${img}" alt="${item.title}"></button>`
         )
         .join("");
 
-      document.querySelectorAll(".thumbnail img").forEach(imgEl => {
-        imgEl.addEventListener("click", () => {
-          mainImage.innerHTML = `<img src="${imgEl.src}" alt="${item.title}">`;
+      document.querySelectorAll(".thumbnail").forEach((btn, index) => {
+        btn.addEventListener("click", () => {
+          currentIndex = index;
+          renderMainImage();
         });
       });
+
+      const moveCarousel = direction => {
+        currentIndex = (currentIndex + direction + images.length) % images.length;
+        renderMainImage();
+      };
+
+      if (prevBtn && nextBtn) {
+        prevBtn.addEventListener("click", () => moveCarousel(-1));
+        nextBtn.addEventListener("click", () => moveCarousel(1));
+      }
+
+      renderMainImage();
     } else {
       mainImage.textContent = "No Image";
+      thumbnails.innerHTML = "";
+      if (prevBtn) prevBtn.disabled = true;
+      if (nextBtn) nextBtn.disabled = true;
     }
 
     const map = document.getElementById("mapPreview");
