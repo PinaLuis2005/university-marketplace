@@ -3,147 +3,120 @@
 <head>
   <meta charset="UTF-8">
   <title>Post an Item</title>
+  <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="postitem.css">
-  <style>
-    /* Drop area styling */
-    .drop-area {
-      border: 2px dashed #007bff;
-      border-radius: 10px;
-      padding: 20px;
-      text-align: center;
-      color: #555;
-      margin: 10px 0;
-      background-color: #f9f9f9;
-      cursor: pointer;
-    }
-    .drop-area.dragover {
-      background-color: #e0f0ff;
-      border-color: #0056b3;
-    }
-    .image-preview {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-top: 10px;
-    }
-    .image-preview img {
-      width: 100px;
-      height: 100px;
-      object-fit: cover;
-      border-radius: 6px;
-      border: 1px solid #ddd;
-    }
-
-    /* Dropdown container */
-    .dropdown-container {
-      position: relative;
-    }
-    .dropdown-container input {
-      width: 100%;
-      padding: 10px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      font-size: 1em;
-    }
-    .dropdown-list {
-      position: absolute;
-      top: 105%;
-      left: 0;
-      right: 0;
-      background: white;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      max-height: 200px;
-      overflow-y: auto;
-      z-index: 10;
-      display: none;
-    }
-    .dropdown-list li {
-      padding: 10px;
-      cursor: pointer;
-      transition: background-color 0.2s;
-    }
-    .dropdown-list li:hover {
-      background-color: #f0f4ff;
-    }
-  </style>
 </head>
-<body>
+<body class="bg-neutral-50">
 
 <header class="top-bar">
-  <div class="logo-title">🏫 University Marketplace</div>
+  <div class="brand-group">
+    <div class="brand-logo">U</div>
+    <div class="logo-title">University Marketplace</div>
+  </div>
 
-  <nav class="nav-bubbles">
+  <nav class="nav-bubbles" aria-label="Main navigation">
     <a href="messages.html" class="nav-bubble">💬 Messages</a>
-    <a href="index.html" class="nav-bubble active">🛒 Marketplace</a>
+    <a href="index.html" class="nav-bubble">🛒 Marketplace</a>
     <a href="seller-dashboard.html" class="nav-bubble">📋 My Listings</a>
-    <a href="postitem.html" class="nav-bubble sell-button">➕ Sell Item</a>
+    <a href="postitem.html" class="nav-bubble sell-button active">➕ Sell Item</a>
   </nav>
 
-  <div class="top-right">
-    <a href="notifications.html" class="icon-bubble">🔔 Notifications</a>
-    <a href="profile.html" class="icon-bubble">👤 Profile</a>
+  <div class="top-actions">
+    <div class="search-container">
+      <input type="text" class="search-input" placeholder="Search" aria-label="Search">
+      <button class="search-btn" aria-label="Search">🔍</button>
+    </div>
+    <div class="top-icons">
+      <a href="notifications.html" class="icon-bubble" aria-label="Notifications">🔔</a>
+      <a href="profile.html" class="icon-bubble" aria-label="Profile">👤</a>
+    </div>
   </div>
 </header>
 
-<div class="container">
-  <h1>Post an Item</h1>
-
-  <form id="postForm" class="post-form">
-    <label for="title">Item Title</label>
-    <input type="text" id="title" name="title" required>
-
-    <label for="price">Price</label>
-    <input type="text" id="price" name="price" required>
-
-    <label for="category">Category</label>
-    <div class="dropdown-container">
-      <input type="text" id="categorySearch" placeholder="Type or select a category..." autocomplete="off">
-      <ul id="categoryList" class="dropdown-list"></ul>
+<main class="page-shell">
+  <div class="section-card content-stack">
+    <div class="section-header">
+      <div>
+        <p class="pill">Sell to UCF community</p>
+        <h1 class="section-title" style="margin-top:6px;">Post an Item</h1>
+      </div>
+      <a href="seller-dashboard.html" class="btn-secondary">View my listings</a>
     </div>
 
-    <label for="condition">Condition</label>
-<select id="condition" name="condition" required>
-  <option value="">Select Condition...</option>
-  <option>New</option>
-  <option>Like New</option>
-  <option>Used</option>
-  <option>For Parts or Repair</option>
-</select>
+    <form id="postForm" class="post-form">
+      <div class="form-grid">
+        <div class="form-field">
+          <label for="title">Item Title</label>
+          <input type="text" id="title" name="title" required>
+        </div>
+        <div class="form-field">
+          <label for="price">Price</label>
+          <input type="text" id="price" name="price" required>
+        </div>
+        <div class="form-field">
+          <label for="category">Category</label>
+          <div class="dropdown-container">
+            <input type="text" id="categorySearch" placeholder="Type or select a category..." autocomplete="off">
+            <ul id="categoryList" class="dropdown-list"></ul>
+          </div>
+        </div>
+        <div class="form-field">
+          <label for="condition">Condition</label>
+          <select id="condition" name="condition" required>
+            <option value="">Select Condition...</option>
+            <option>New</option>
+            <option>Like New</option>
+            <option>Used</option>
+            <option>For Parts or Repair</option>
+          </select>
+        </div>
+      </div>
 
+      <div class="form-field">
+        <label for="description">Description <span class="muted">(optional)</span></label>
+        <textarea id="description" name="description" rows="5" placeholder="Add details about your item... (optional)"></textarea>
+      </div>
 
-    <label for="description">Description <span style="font-weight:normal; color:#666;">(optional)</span></label>
-<textarea id="description" name="description" rows="5" placeholder="Add details about your item... (optional)"></textarea>
+      <div class="form-field">
+        <label>Upload Images</label>
+        <div class="drop-area" id="dropArea">
+          Drag & Drop images here or click to select
+          <input type="file" id="images" name="images" multiple accept="image/*" style="display:none;">
+        </div>
+        <div id="imagePreview" class="image-preview"></div>
+      </div>
 
+      <div class="form-grid">
+        <div class="form-field">
+          <label for="zipcode">Zip Code</label>
+          <input type="text" id="zipcode" name="zipcode" required>
+        </div>
+        <div class="form-field">
+          <label for="building">Building Name</label>
+          <input type="text" id="building" name="building" placeholder="e.g., Nike Hall or Knights Plaza">
+        </div>
+        <div class="form-field">
+          <label for="apartment">Apartment / Room Number (Optional)</label>
+          <input type="text" id="apartment" name="apartment" placeholder="e.g., Apt 204 or Room B">
+        </div>
+        <div class="form-field">
+          <label for="address">Street Address</label>
+          <input type="text" id="address" name="address" required placeholder="e.g., 123 University Blvd">
+        </div>
+      </div>
 
-    <label>Upload Images</label>
-    <div class="drop-area" id="dropArea">
-      Drag & Drop images here or click to select
-      <input type="file" id="images" name="images" multiple accept="image/*" style="display:none;">
-    </div>
-    <div id="imagePreview" class="image-preview"></div>
+      <div class="form-field">
+        <label for="map">Map Preview (Google Maps Embed - Optional)</label>
+        <textarea id="map" name="map" rows="4"></textarea>
+      </div>
 
-    <h3>Location Details</h3>
-
-<label for="zipcode">Zip Code</label>
-<input type="text" id="zipcode" name="zipcode" required>
-
-<label for="building">Building Name</label>
-<input type="text" id="building" name="building" placeholder="e.g., Nike Hall or Knights Plaza">
-
-<label for="apartment">Apartment / Room Number (Optional)</label>
-<input type="text" id="apartment" name="apartment" placeholder="e.g., Apt 204 or Room B">
-
-<label for="address">Street Address</label>
-<input type="text" id="address" name="address" required placeholder="e.g., 123 University Blvd">
-
-
-    <label for="map">Map Preview (Google Maps Embed - Optional)</label>
-    <textarea id="map" name="map" rows="4"></textarea>
-
-    <button type="submit">Post Item</button>
-  </form>
-</div>
+      <div class="button-row">
+        <button type="submit" class="btn-primary">Post Item</button>
+        <a href="index.html" class="btn-secondary">Cancel</a>
+      </div>
+    </form>
+  </div>
+</main>
 
 <script>
   /* ================================
