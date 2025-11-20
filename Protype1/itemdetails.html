@@ -116,9 +116,6 @@
       locationDetail.textContent = "📍 " + (item.address || item.zipcode || "N/A");
     }
 
-    const sellerName = item.sellerName || item.sellerEmail || item.seller || "Seller";
-    localStorage.setItem("sellerName", sellerName);
-
     const mainImage = document.getElementById("mainImage");
     const thumbnails = document.getElementById("thumbnails");
     const prevBtn = document.getElementById("prevImage");
@@ -238,50 +235,8 @@
       return;
     }
 
-    ensureUserStub(seller, sellerName);
-    bootstrapConversation(currentUser.email, seller, sellerName);
-    localStorage.setItem(
-      "openChatMeta",
-      JSON.stringify({ email: seller, name: sellerName })
-    );
     localStorage.setItem("openChatWith", seller);
     window.location.href = "messages.html";
-  }
-
-  function bootstrapConversation(current, partner, partnerName) {
-    const key = [current, partner].sort().join("::");
-    const raw = JSON.parse(localStorage.getItem("conversations"));
-    const store = Array.isArray(raw)
-      ? { conversations: {} }
-      : raw?.conversations && typeof raw.conversations === "object"
-        ? raw
-        : { conversations: {} };
-
-    const existing = store.conversations[key];
-    const convo = existing || {
-      key,
-      participants: [current, partner],
-      labels: {},
-      messages: []
-    };
-
-    convo.participants = convo.participants?.length ? convo.participants : [current, partner];
-    convo.labels = convo.labels || {};
-    convo.labels[partner] = partnerName || partner;
-    store.conversations[key] = convo;
-    localStorage.setItem("conversations", JSON.stringify(store));
-  }
-
-  function ensureUserStub(email, name) {
-    if (!email) return;
-    const users = JSON.parse(localStorage.getItem("users")) || [];
-    const idx = users.findIndex(u => u.email === email);
-    if (idx === -1) {
-      users.push({ email, name: name || email });
-    } else if (name && !users[idx].name) {
-      users[idx].name = name;
-    }
-    localStorage.setItem("users", JSON.stringify(users));
   }
 
   function viewSellerProfile() {
