@@ -24,38 +24,61 @@ body {
 
 /* ===== Top Bar ===== */
 .top-bar {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 12px;
-  padding: 14px 20px;
-  background-color: rgba(255, 255, 255, 0.92);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 20px;
+  background-color: rgba(255, 255, 255, 0.94);
   backdrop-filter: blur(10px);
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+  border-bottom: 1px solid var(--border);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
   position: sticky;
   top: 0;
   z-index: 1000;
 }
 
-@media (min-width: 768px) {
-  .top-bar {
-    grid-template-columns: auto 1fr auto;
-    align-items: center;
-    gap: 16px;
-  }
+.brand-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.brand-logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 40px;
+  width: 40px;
+  border-radius: 14px;
+  background: var(--ucf-gold);
+  color: #000;
+  font-weight: 700;
+  font-size: 16px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
 }
 
 .logo-title {
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 700;
   color: #0f172a;
+  white-space: nowrap;
 }
 
-/* Navigation bubbles */
 .nav-bubbles {
   display: flex;
-  gap: 10px;
   align-items: center;
   justify-content: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.nav-bubbles::-webkit-scrollbar {
+  display: none;
 }
 
 .nav-bubble {
@@ -69,6 +92,7 @@ body {
   font-weight: 600;
   transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+  white-space: nowrap;
 }
 
 .nav-bubble:hover {
@@ -93,11 +117,23 @@ body {
   background-color: rgba(186, 155, 55, 0.9);
 }
 
-/* ===== Search Input ===== */
+/* ===== Right Actions ===== */
+.top-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 1;
+  min-width: 0;
+  margin-left: auto;
+}
+
 .search-container {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex: 1 1 220px;
+  min-width: 180px;
+  max-width: 380px;
   width: 100%;
 }
 
@@ -135,11 +171,12 @@ body {
 }
 
 /* ===== Top Right Icons ===== */
-.top-right {
-  display: flex;
+
+.top-icons {
+  display: inline-flex;
   align-items: center;
-  gap: 12px;
-  justify-content: flex-end;
+  gap: 10px;
+  flex-shrink: 0;
 }
 
 .icon-bubble {

@@ -25,27 +25,28 @@
 
 <body class="bg-neutral-50 text-neutral-900 font-sans">
 
-<header class="top-bar bg-white/90 backdrop-blur border-b border-neutral-200">
-  <div class="flex items-center gap-3">
-    <div class="flex h-10 w-10 items-center justify-center rounded-2xl bg-ucfGold text-black font-semibold shadow-sm">U</div>
+<header class="top-bar">
+  <div class="brand-group">
+    <div class="brand-logo">U</div>
     <div class="logo-title text-lg font-semibold text-neutral-900">University Marketplace</div>
   </div>
 
-  <nav class="nav-bubbles hidden md:flex">
+  <nav class="nav-bubbles" aria-label="Main navigation">
     <a href="messages.html" class="nav-bubble">💬 Messages</a>
     <a href="index.html" class="nav-bubble active">🛒 Marketplace</a>
     <a href="seller-dashboard.html" class="nav-bubble">📋 My Listings</a>
     <a href="postitem.html" class="nav-bubble sell-button">➕ Sell Item</a>
   </nav>
 
-  <div class="search-container flex-1 md:flex-none">
-    <input type="text" id="searchBar" class="search-input" placeholder="Search Marketplace...">
-    <button id="searchBtn" class="search-btn">🔍</button>
-  </div>
-
-  <div class="top-right hidden sm:flex">
-    <a href="notifications.html" class="icon-bubble">🔔 Notifications</a>
-    <a href="profile.html" class="icon-bubble">👤 Profile</a>
+  <div class="top-actions">
+    <div class="search-container">
+      <input type="text" id="searchBar" class="search-input" placeholder="Search Marketplace...">
+      <button id="searchBtn" class="search-btn">🔍</button>
+    </div>
+    <div class="top-icons">
+      <a href="notifications.html" class="icon-bubble" aria-label="Notifications">🔔</a>
+      <a href="profile.html" class="icon-bubble" aria-label="Profile">👤</a>
+    </div>
   </div>
 </header>
 
