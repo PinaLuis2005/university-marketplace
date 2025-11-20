@@ -32,9 +32,14 @@
   </div>
 </header>
   <script>
-  if (!localStorage.getItem("loggedInUser")) {
+  const authUser = JSON.parse(localStorage.getItem("userProfile")) || JSON.parse(localStorage.getItem("loggedInUser"));
+  if (!authUser || !authUser.email) {
     localStorage.setItem("redirectAfterLogin", window.location.href);
     window.location.href = "login_signup.html";
+  } else {
+    localStorage.setItem("userProfile", JSON.stringify(authUser));
+    localStorage.setItem("loggedInUser", JSON.stringify(authUser));
+    localStorage.setItem("loggedInUserId", authUser.email);
   }
   </script>
 

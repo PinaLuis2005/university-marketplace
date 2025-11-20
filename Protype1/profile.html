@@ -137,6 +137,8 @@
   const saveUsers = users => localStorage.setItem("users", JSON.stringify(users));
 
   const getCurrentUser = () => {
+    const storedProfile = JSON.parse(localStorage.getItem("userProfile"));
+    if (storedProfile && storedProfile.email) return storedProfile;
     const obj = JSON.parse(localStorage.getItem("loggedInUser"));
     if (obj && obj.email) return obj;
     const id = localStorage.getItem("loggedInUserId");
@@ -159,6 +161,8 @@
       window.location.href = "login_signup.html";
       return;
     }
+
+    localStorage.setItem("userProfile", JSON.stringify(loggedUser));
 
     let userToShow;
     if (selectedSellerId && selectedSellerId !== loggedUser.email) {

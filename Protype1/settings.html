@@ -10,9 +10,14 @@
 <body class="bg-neutral-50">
 
 <script>
-  if (!localStorage.getItem("loggedInUserId")) {
+  const authUser = JSON.parse(localStorage.getItem("userProfile")) || JSON.parse(localStorage.getItem("loggedInUser"));
+  if (!authUser || !authUser.email) {
     localStorage.setItem("redirectAfterLogin", window.location.href);
     window.location.href = "login_signup.html";
+  } else {
+    localStorage.setItem("userProfile", JSON.stringify(authUser));
+    localStorage.setItem("loggedInUser", JSON.stringify(authUser));
+    localStorage.setItem("loggedInUserId", authUser.email);
   }
 </script>
 
@@ -155,17 +160,25 @@
     localStorage.setItem("users", JSON.stringify(users));
   }
   function getCurrentUser() {
+    const storedProfile = JSON.parse(localStorage.getItem("userProfile"));
+    if (storedProfile && storedProfile.email) return storedProfile;
     const stored = JSON.parse(localStorage.getItem("loggedInUser"));
     if (stored && stored.email) return stored;
     const id = localStorage.getItem("loggedInUserId");
     const users = getUsers();
     return users.find(u => u.email === id) || null;
   }
-  function updateUserEverywhere(user) {
+  function updateUserEverywhere(user, previousEmail) {
     const users = getUsers();
-    const idx = users.findIndex(u => u.email === user.email);
-    if (idx !== -1) users[idx] = user;
+    const lookupEmail = previousEmail || user.email;
+    const idx = users.findIndex(u => u.email === lookupEmail);
+    if (idx !== -1) {
+      users[idx] = user;
+    } else {
+      users.push(user);
+    }
     saveUsers(users);
+    localStorage.setItem("userProfile", JSON.stringify(user));
     localStorage.setItem("loggedInUser", JSON.stringify(user));
     localStorage.setItem("loggedInUserId", user.email);
   }
@@ -280,6 +293,7 @@
   function saveSettings() {
     let user = getCurrentUser();
     if (!user) return;
+    const previousEmail = user.email;
 
     const newEmail = document.getElementById("newEmailPhone").value.trim();
     if (newEmail) user.email = newEmail;
@@ -294,7 +308,7 @@
     if (croppedProfile) user.profilePic = croppedProfile;
     if (croppedCover) user.coverPhoto = croppedCover;
 
-    updateUserEverywhere(user);
+    updateUserEverywhere(user, previousEmail);
 
     alert("✅ Changes saved successfully!");
     window.location.href = "profile.html";
@@ -311,12 +325,14 @@
     const user = getCurrentUser();
     users = users.filter(u => u.email !== user.email);
     saveUsers(users);
+    localStorage.removeItem("userProfile");
     localStorage.removeItem("loggedInUser");
     localStorage.removeItem("loggedInUserId");
     window.location.href = "login_signup.html";
   }
 
   function logoutUser() {
+    localStorage.removeItem("userProfile");
     localStorage.removeItem("loggedInUserId");
     localStorage.removeItem("loggedInUser");
     localStorage.removeItem("redirectAfterLogin");

@@ -8,6 +8,8 @@ function saveUsers(users) {
 }
 
 function getCurrentUser() {
+  const profile = JSON.parse(localStorage.getItem("userProfile"));
+  if (profile && profile.email) return profile;
   const obj = JSON.parse(localStorage.getItem("loggedInUser"));
   if (obj && obj.email) return obj;
   const id = localStorage.getItem("loggedInUserId");
@@ -85,6 +87,7 @@ function openChat(partnerEmail) {
   chatHeader.textContent = `Chat with ${partnerEmail}`;
   messageInput.disabled = false;
   sendBtn.disabled = false;
+  messageInput.focus();
   renderMessages();
 }
 

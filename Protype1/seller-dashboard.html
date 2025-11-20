@@ -20,9 +20,14 @@
 
 <script>
   // Redirect if not logged in
-  if (!localStorage.getItem("loggedInUserId") && !localStorage.getItem("loggedInUser")) {
+  const authUser = JSON.parse(localStorage.getItem("userProfile")) || JSON.parse(localStorage.getItem("loggedInUser"));
+  if (!authUser || !authUser.email) {
     localStorage.setItem("redirectAfterLogin", window.location.href);
     window.location.href = "login_signup.html";
+  } else {
+    localStorage.setItem("userProfile", JSON.stringify(authUser));
+    localStorage.setItem("loggedInUser", JSON.stringify(authUser));
+    localStorage.setItem("loggedInUserId", authUser.email);
   }
 </script>
 
@@ -100,6 +105,8 @@
 
 <script>
   function getCurrentUserEmail() {
+    const userProfile = JSON.parse(localStorage.getItem("userProfile"));
+    if (userProfile && userProfile.email) return userProfile.email;
     const user = JSON.parse(localStorage.getItem("loggedInUser"));
     if (user && user.email) return user.email;
     return localStorage.getItem("loggedInUserId");
