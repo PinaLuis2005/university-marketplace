@@ -3,98 +3,139 @@
 <head>
   <meta charset="UTF-8" />
   <title>Settings</title>
+  <link rel="stylesheet" href="styles.css" />
   <link rel="stylesheet" href="settings.css" />
   <link rel="stylesheet" href="https://unpkg.com/cropperjs@1.6.2/dist/cropper.min.css" />
-  <style>
-    #passwordStrength {
-      font-weight: bold;
-      margin-left: 10px;
-    }
-    .weak { color: red; }
-    .medium { color: orange; }
-    .strong { color: green; }
-  </style>
 </head>
-<body>
+<body class="bg-neutral-50">
 
 <script>
-  if (!localStorage.getItem("loggedInUserId")) {
+  const authUser = JSON.parse(localStorage.getItem("userProfile")) || JSON.parse(localStorage.getItem("loggedInUser"));
+  if (!authUser || !authUser.email) {
     localStorage.setItem("redirectAfterLogin", window.location.href);
     window.location.href = "login_signup.html";
+  } else {
+    localStorage.setItem("userProfile", JSON.stringify(authUser));
+    localStorage.setItem("loggedInUser", JSON.stringify(authUser));
+    localStorage.setItem("loggedInUserId", authUser.email);
   }
 </script>
 
 <header class="top-bar">
-  <div class="logo-title">🏫 University Marketplace</div>
-  <nav class="nav-bubbles">
+  <div class="brand-group">
+    <div class="brand-logo">U</div>
+    <div class="logo-title">University Marketplace</div>
+  </div>
+  <nav class="nav-bubbles" aria-label="Main navigation">
     <a href="messages.html" class="nav-bubble">💬 Messages</a>
     <a href="index.html" class="nav-bubble">🛒 Marketplace</a>
     <a href="seller-dashboard.html" class="nav-bubble">📋 My Listings</a>
-    <a href="postitem.html" class="nav-bubble">➕ Sell Item</a>
+    <a href="postitem.html" class="nav-bubble sell-button">➕ Sell Item</a>
   </nav>
-  <div class="top-right">
-    <a href="profile.html" class="icon-bubble">👤 Profile</a>
-    <a href="settings.html" class="icon-bubble active">⚙️ Settings</a>
+  <div class="top-actions">
+    <div class="search-container">
+      <input type="text" class="search-input" placeholder="Search settings" aria-label="Search settings">
+      <button class="search-btn" aria-label="Search">🔍</button>
+    </div>
+    <div class="top-icons">
+      <a href="notifications.html" class="icon-bubble" aria-label="Notifications">🔔</a>
+      <a href="profile.html" class="icon-bubble" aria-label="Profile">👤</a>
+    </div>
   </div>
 </header>
 
-<div class="settings-bubble">
-  <h1>⚙️ Settings</h1>
-
-  <div class="setting-section">
-    <h2>Account Information</h2>
-
-    <label>Current Email / Phone</label>
-    <input type="text" id="currentEmailPhone" readonly />
-
-    <label>New Email / Phone</label>
-    <input type="text" id="newEmailPhone" />
-
-    <label>Re-enter Current Password</label>
-    <div class="password-wrapper">
-      <input type="password" id="currentPasswordCheck" placeholder="Enter your current password" />
-      <button type="button" class="toggle-btn" onclick="togglePassword('currentPasswordCheck')">👁 Show</button>
+<main class="page-shell content-stack">
+  <header class="section-header">
+    <div>
+      <h1 class="section-title">⚙️ Settings</h1>
+      <p class="muted">Manage your account, security, and profile visuals.</p>
     </div>
+  </header>
 
-    <label>New Password</label>
-    <div class="password-wrapper">
-      <input type="password" id="newPassword" oninput="checkPasswordStrength(this.value)" />
-      <button type="button" class="toggle-btn" onclick="togglePassword('newPassword')">👁 Show</button>
-      <span id="passwordStrength"></span>
+  <section class="section-card">
+    <div class="section-header">
+      <h2 class="section-title">Account Information</h2>
+      <span class="pill">Secure</span>
     </div>
-  </div>
-
-  <div class="setting-section">
-    <h2>Profile</h2>
-
-    <label>Update Profile Picture</label>
-    <input type="file" id="profilePic" accept="image/*" />
-    <div class="profile-preview">
-      <img id="profilePreviewImg" alt="Profile Preview" />
+    <div class="form-grid">
+      <div class="form-field">
+        <label>Current Email / Phone</label>
+        <input type="text" id="currentEmailPhone" readonly />
+      </div>
+      <div class="form-field">
+        <label>New Email / Phone</label>
+        <input type="text" id="newEmailPhone" />
+      </div>
     </div>
-
-    <label>Change Cover Photo</label>
-    <input type="file" id="coverPhoto" accept="image/*" />
-    <div class="cover-preview">
-      <img id="coverPreviewImg" alt="Cover Preview" />
+    <div class="form-grid">
+      <div class="form-field password-wrapper">
+        <label>Re-enter Current Password</label>
+        <div class="password-control">
+          <input type="password" id="currentPasswordCheck" placeholder="Enter your current password" />
+          <button type="button" class="toggle-btn" onclick="togglePassword('currentPasswordCheck')">👁 Show</button>
+        </div>
+      </div>
+      <div class="form-field password-wrapper">
+        <label>New Password</label>
+        <div class="password-control">
+          <input type="password" id="newPassword" oninput="checkPasswordStrength(this.value)" />
+          <button type="button" class="toggle-btn" onclick="togglePassword('newPassword')">👁 Show</button>
+          <span id="passwordStrength" class="strength-label"></span>
+        </div>
+      </div>
     </div>
+  </section>
 
-    <label>Bio</label>
-    <textarea id="bio" rows="3" placeholder="Write something about yourself..."></textarea>
-  </div>
+  <section class="section-card">
+    <div class="section-header">
+      <h2 class="section-title">Profile</h2>
+      <span class="muted">Pictures and bio</span>
+    </div>
+    <div class="form-grid">
+      <div class="form-field">
+        <label>Update Profile Picture</label>
+        <input type="file" id="profilePic" accept="image/*" />
+        <div class="profile-preview">
+          <img id="profilePreviewImg" alt="Profile Preview" />
+        </div>
+      </div>
+      <div class="form-field">
+        <label>Change Cover Photo</label>
+        <input type="file" id="coverPhoto" accept="image/*" />
+        <div class="cover-preview">
+          <img id="coverPreviewImg" alt="Cover Preview" />
+        </div>
+      </div>
+    </div>
+    <div class="form-field">
+      <label>Bio</label>
+      <textarea id="bio" rows="3" placeholder="Write something about yourself..."></textarea>
+    </div>
+  </section>
 
-  <div class="setting-actions">
-    <button onclick="saveSettings()">💾 Save Changes</button>
-    <button class="clear-saved" onclick="clearSaved()">🧹 Clear Saved Items</button>
-    <button class="delete-account" onclick="deleteAccount()">❌ Delete Account</button>
-  </div>
+  <section class="section-card">
+    <div class="section-header">
+      <h2 class="section-title">Actions</h2>
+      <span class="muted">Manage saved items or account</span>
+    </div>
+    <div class="button-row">
+      <button class="btn-primary" onclick="saveSettings()">💾 Save Changes</button>
+      <button class="btn-secondary" onclick="clearSaved()">🧹 Clear Saved Items</button>
+      <button class="btn-secondary danger" onclick="deleteAccount()">❌ Delete Account</button>
+    </div>
+  </section>
 
-  <div class="logout-section">
-    <button class="logout-btn" onclick="logoutUser()">🚪 Logout</button>
-  </div>
-</div>
+  <section class="section-card danger-card">
+    <div class="section-header">
+      <div>
+        <h2 class="section-title">Logout</h2>
+        <p class="muted">Sign out of University Marketplace</p>
+      </div>
+      <button class="btn-secondary danger" onclick="logoutUser()">🚪 Logout</button>
+    </div>
+  </section>
+</main>
 
-<!-- Cropper Modal -->
 <dialog id="cropDialog" class="crop-dialog">
   <form method="dialog" class="crop-card" onsubmit="return false;">
     <header class="crop-card__header">
@@ -112,7 +153,6 @@
 
 <script src="https://unpkg.com/cropperjs@1.6.2/dist/cropper.min.js"></script>
 <script>
-  // ========== Multi-user helpers ==========
   function getUsers() {
     return JSON.parse(localStorage.getItem("users")) || [];
   }
@@ -120,29 +160,58 @@
     localStorage.setItem("users", JSON.stringify(users));
   }
   function getCurrentUser() {
+    const storedProfile = JSON.parse(localStorage.getItem("userProfile"));
+    if (storedProfile && storedProfile.email) return storedProfile;
     const stored = JSON.parse(localStorage.getItem("loggedInUser"));
     if (stored && stored.email) return stored;
     const id = localStorage.getItem("loggedInUserId");
     const users = getUsers();
     return users.find(u => u.email === id) || null;
   }
-  function updateUserEverywhere(user) {
-    // sync across all storages
+  function updateUserEverywhere(user, previousEmail) {
     const users = getUsers();
-    const idx = users.findIndex(u => u.email === user.email);
-    if (idx !== -1) users[idx] = user;
+    const lookupEmail = previousEmail || user.email;
+    const idx = users.findIndex(u => u.email === lookupEmail);
+    if (idx !== -1) {
+      users[idx] = user;
+    } else {
+      users.push(user);
+    }
     saveUsers(users);
+    localStorage.setItem("userProfile", JSON.stringify(user));
     localStorage.setItem("loggedInUser", JSON.stringify(user));
     localStorage.setItem("loggedInUserId", user.email);
   }
 
-  // ========== Password toggler ==========
   function togglePassword(id) {
     const input = document.getElementById(id);
     input.type = input.type === "password" ? "text" : "password";
   }
 
-  // ========== Cropper setup ==========
+  function checkPasswordStrength(value) {
+    const label = document.getElementById("passwordStrength");
+    if (!value) {
+      label.textContent = "";
+      label.className = "strength-label";
+      return;
+    }
+    let score = 0;
+    if (value.length >= 8) score++;
+    if (/[A-Z]/.test(value)) score++;
+    if (/[0-9]/.test(value)) score++;
+    if (/[^A-Za-z0-9]/.test(value)) score++;
+    if (score <= 1) {
+      label.textContent = "Weak";
+      label.className = "strength-label weak";
+    } else if (score === 2) {
+      label.textContent = "Medium";
+      label.className = "strength-label medium";
+    } else {
+      label.textContent = "Strong";
+      label.className = "strength-label strong";
+    }
+  }
+
   let cropper = null, cropTarget = null;
   const dlg = document.getElementById('cropDialog');
   const imgEl = document.getElementById('cropperImage');
@@ -212,7 +281,6 @@
   document.getElementById('btnSaveCrop').addEventListener('click', saveCrop);
   document.getElementById('btnCancelCrop').addEventListener('click', closeCropper);
 
-  // ========== Load Settings ==========
   function loadSettings() {
     const user = getCurrentUser();
     if (!user) return;
@@ -222,17 +290,16 @@
     if (user.coverPhoto) document.getElementById("coverPreviewImg").src = user.coverPhoto;
   }
 
-  // ========== Save Settings ==========
   function saveSettings() {
     let user = getCurrentUser();
     if (!user) return;
+    const previousEmail = user.email;
 
-    // Update user info (no password required)
     const newEmail = document.getElementById("newEmailPhone").value.trim();
     if (newEmail) user.email = newEmail;
 
     const newPass = document.getElementById("newPassword").value.trim();
-    if (newPass) user.password = newPass; // optional
+    if (newPass) user.password = newPass;
 
     user.bio = document.getElementById("bio").value;
 
@@ -241,13 +308,12 @@
     if (croppedProfile) user.profilePic = croppedProfile;
     if (croppedCover) user.coverPhoto = croppedCover;
 
-    updateUserEverywhere(user);
+    updateUserEverywhere(user, previousEmail);
 
     alert("✅ Changes saved successfully!");
-    window.location.href = "profile.html"; // redirect to see updates
+    window.location.href = "profile.html";
   }
 
-  // ========== Utility actions ==========
   function clearSaved() {
     localStorage.removeItem("savedItems");
     alert("All saved items cleared!");
@@ -259,24 +325,23 @@
     const user = getCurrentUser();
     users = users.filter(u => u.email !== user.email);
     saveUsers(users);
+    localStorage.removeItem("userProfile");
     localStorage.removeItem("loggedInUser");
     localStorage.removeItem("loggedInUserId");
     window.location.href = "login_signup.html";
   }
 
   function logoutUser() {
-  // Clear all login-related data
-  localStorage.removeItem("loggedInUserId");
-  localStorage.removeItem("loggedInUser");
-  localStorage.removeItem("redirectAfterLogin");
-  localStorage.removeItem("openChatWith");
-  localStorage.removeItem("selectedSellerId");
-  
-  // Optional: keep marketplaceItems globally (don’t remove that!)
-  alert("You have been logged out.");
-  window.location.href = "login_signup.html";
-}
+    localStorage.removeItem("userProfile");
+    localStorage.removeItem("loggedInUserId");
+    localStorage.removeItem("loggedInUser");
+    localStorage.removeItem("redirectAfterLogin");
+    localStorage.removeItem("openChatWith");
+    localStorage.removeItem("selectedSellerId");
 
+    alert("You have been logged out.");
+    window.location.href = "login_signup.html";
+  }
 
   window.onload = loadSettings;
 </script>

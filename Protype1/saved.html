@@ -3,30 +3,48 @@
 <head>
   <meta charset="UTF-8">
   <title>Saved Items</title>
+  <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="saved.css">
 </head>
-<body>
+<body class="bg-neutral-50">
 
 <header class="top-bar">
-  <div class="logo-title">🏫 University Marketplace</div>
+  <div class="brand-group">
+    <div class="brand-logo">U</div>
+    <div class="logo-title">University Marketplace</div>
+  </div>
 
-  <nav class="nav-bubbles">
+  <nav class="nav-bubbles" aria-label="Main navigation">
     <a href="messages.html" class="nav-bubble">💬 Messages</a>
     <a href="index.html" class="nav-bubble">🛒 Marketplace</a>
     <a href="seller-dashboard.html" class="nav-bubble">📋 My Listings</a>
-    <a href="postitem.html" class="nav-bubble">➕ Sell Item</a>
+    <a href="postitem.html" class="nav-bubble sell-button">➕ Sell Item</a>
   </nav>
 
-  <div class="top-right">
-    <a href="notifications.html" class="icon-bubble">🔔 Notifications</a>
-    <a href="profile.html" class="icon-bubble">👤 Profile</a>
+  <div class="top-actions">
+    <div class="search-container">
+      <input type="text" class="search-input" placeholder="Search saved items" aria-label="Search saved items">
+      <button class="search-btn" aria-label="Search">🔍</button>
+    </div>
+    <div class="top-icons">
+      <a href="notifications.html" class="icon-bubble" aria-label="Notifications">🔔</a>
+      <a href="profile.html" class="icon-bubble" aria-label="Profile">👤</a>
+    </div>
   </div>
 </header>
 
-<div class="bubble-container">
-  <h1>❤️ Saved Items</h1>
-  <section class="saved-grid" id="savedGrid"></section>
-</div>
+<main class="page-shell content-stack">
+  <div class="section-header">
+    <div>
+      <h1 class="section-title">❤️ Saved Items</h1>
+      <p class="muted">Your bookmarked listings in one place.</p>
+    </div>
+  </div>
+
+  <section class="section-card">
+    <div class="saved-grid" id="savedGrid"></div>
+  </section>
+</main>
 
 <script>
   function loadSavedItems() {
@@ -37,7 +55,7 @@
     const savedItems = items.filter(item => savedIds.includes(item.id));
 
     if (savedItems.length === 0) {
-      grid.innerHTML = "<p>You haven’t saved any items yet.</p>";
+      grid.innerHTML = "<p class='muted'>You haven’t saved any items yet.</p>";
       return;
     }
 
@@ -45,11 +63,11 @@
     savedItems.forEach(item => {
       const card = document.createElement("div");
       card.classList.add("item-card");
-      card.style.cursor = "pointer";
-
       card.innerHTML = `
-        ${item.sold ? '<div class="sold-banner">SOLD</div>' : ""}
-        <img src="${(item.images && item.images[0]) || item.image || 'https://via.placeholder.com/250x140'}" alt="Item">
+        ${item.sold ? '<div class="sold-overlay">SOLD</div>' : ""}
+        <div class="listing-image-container">
+          <img class="marketplace-image" src="${(item.images && item.images[0]) || item.image || 'https://via.placeholder.com/250x140'}" alt="${item.title}">
+        </div>
         <div class="item-details">
           <strong>${item.title}</strong>
           <p>$${item.price} • ${item.address || item.zipcode || "N/A"}</p>
