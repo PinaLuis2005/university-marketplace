@@ -3,54 +3,72 @@
 <head>
   <meta charset="UTF-8">
   <title>Item Details</title>
+  <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="itemdetails.css">
 </head>
-<body>
+<body class="bg-neutral-50">
 
-<!-- Top Navigation Bar -->
 <header class="top-bar">
-  <div class="logo-title">🏫 University Marketplace</div>
+  <div class="brand-group">
+    <div class="brand-logo">U</div>
+    <div class="logo-title">University Marketplace</div>
+  </div>
 
-  <nav class="nav-bubbles">
+  <nav class="nav-bubbles" aria-label="Main navigation">
     <a href="messages.html" class="nav-bubble">💬 Messages</a>
     <a href="index.html" class="nav-bubble active">🛒 Marketplace</a>
     <a href="seller-dashboard.html" class="nav-bubble">📋 My Listings</a>
     <a href="postitem.html" class="nav-bubble sell-button">➕ Sell Item</a>
   </nav>
 
-  <div class="top-right">
-    <a href="saved.html" class="icon-bubble">❤️ Saved Items</a>
-    <a href="profile.html" class="icon-bubble">👤 Profile</a>
+  <div class="top-actions">
+    <div class="search-container">
+      <input type="text" class="search-input" placeholder="Search Marketplace..." aria-label="Search Marketplace">
+      <button class="search-btn" aria-label="Search">🔍</button>
+    </div>
+    <div class="top-icons">
+      <a href="notifications.html" class="icon-bubble" aria-label="Notifications">🔔</a>
+      <a href="profile.html" class="icon-bubble" aria-label="Profile">👤</a>
+    </div>
   </div>
 </header>
 
-<!-- Page Content -->
-<div class="item-page">
-  <!-- Image Gallery -->
-  <div class="gallery">
-    <div class="main-image" id="mainImage">Main Image</div>
-    <div class="thumbnails" id="thumbnails"></div>
+<main class="page-shell">
+  <div class="content-stack">
+    <header class="section-header">
+      <div>
+        <h1 class="section-title" id="itemTitle">Item Title</h1>
+        <p class="muted" id="locationLabel">📍 Location</p>
+      </div>
+      <div class="price-pill" id="itemPrice">$0</div>
+    </header>
+
+    <section class="item-layout">
+      <div class="gallery section-card">
+        <div class="main-image listing-image-container" id="mainImage">Main Image</div>
+        <div class="thumbnails" id="thumbnails"></div>
+      </div>
+
+      <div class="details section-card">
+        <div class="detail-block">
+          <div class="description-label">Description</div>
+          <div class="description" id="itemDescription">Item description goes here.</div>
+        </div>
+
+        <div class="item-actions button-row">
+          <button class="btn-primary" onclick="messageSeller()">💬 Message Seller</button>
+          <button class="btn-secondary" onclick="addToFavorites()">❤️ Save Item</button>
+          <button class="btn-secondary" onclick="viewSellerProfile()">👤 View Seller</button>
+        </div>
+
+        <div class="map-card">
+          <div class="map-label">Location Preview</div>
+          <div class="location-map" id="mapPreview">[Map preview goes here]</div>
+        </div>
+      </div>
+    </section>
   </div>
-
-  <!-- Item Details -->
-  <div class="details">
-    <h2 id="itemTitle">Item Title</h2>
-    <div class="price" id="itemPrice">$0</div>
-
-    <div class="description-label">Description:</div>
-    <div class="description" id="itemDescription">Item description goes here.</div>
-
-    <div class="item-actions">
-      <button class="message-button" onclick="messageSeller()">💬 Message Seller</button>
-
-      <button class="favorite-btn" onclick="addToFavorites()">❤️ Save Item</button>
-      <button class="profile-btn" onclick="viewSellerProfile()">👤 View Seller</button>
-    </div>
-
-    <div class="location-map" id="mapPreview">[Map preview goes here]</div>
-    <div class="location-label" id="locationLabel">📍 Location</div>
-  </div>
-</div>
+</main>
 
 <script>
   function loadItemDetails() {
@@ -63,14 +81,12 @@
       return;
     }
 
-    // Populate text fields
     document.getElementById("itemTitle").textContent = item.title;
     document.getElementById("itemPrice").textContent = "$" + item.price;
     document.getElementById("itemDescription").textContent = item.description;
     document.getElementById("locationLabel").textContent =
       "📍 " + (item.address || item.zipcode || "N/A");
 
-    // Handle main image + multiple images
     const mainImage = document.getElementById("mainImage");
     const thumbnails = document.getElementById("thumbnails");
 
@@ -86,11 +102,10 @@
       thumbnails.innerHTML = images
         .map(
           img =>
-            `<div class="thumbnail"><img src="${img}" alt="${item.title}"></div>`
+            `<button class="thumbnail" type="button"><img src="${img}" alt="${item.title}"></button>`
         )
         .join("");
 
-      // Add click event for thumbnails
       document.querySelectorAll(".thumbnail img").forEach(imgEl => {
         imgEl.addEventListener("click", () => {
           mainImage.innerHTML = `<img src="${imgEl.src}" alt="${item.title}">`;
@@ -100,7 +115,6 @@
       mainImage.textContent = "No Image";
     }
 
-    // Map preview
     const map = document.getElementById("mapPreview");
     if (item.map && item.map.includes("iframe")) {
       map.innerHTML = item.map;
@@ -108,7 +122,6 @@
       map.textContent = "[No map provided]";
     }
 
-    // Store seller info for messaging
     localStorage.setItem("sellerEmail", item.sellerEmail || item.seller);
   }
 
@@ -124,7 +137,6 @@
     }
   }
 
-  // ✅ NEW FUNCTION — Message Seller directly
   function messageSeller() {
     const seller = localStorage.getItem("sellerEmail");
     const currentUser = localStorage.getItem("loggedInUserId");
@@ -140,25 +152,22 @@
       return;
     }
 
-    // Store chat target and go to messages
     localStorage.setItem("openChatWith", seller);
     window.location.href = "messages.html";
   }
 
   function viewSellerProfile() {
-  const sellerEmail = localStorage.getItem("sellerEmail");
-  if (!sellerEmail) {
-    alert("Seller profile not available.");
-    return;
+    const sellerEmail = localStorage.getItem("sellerEmail");
+    if (!sellerEmail) {
+      alert("Seller profile not available.");
+      return;
+    }
+    localStorage.setItem("selectedSellerId", sellerEmail);
+    window.location.href = "profile.html";
   }
-  localStorage.setItem("selectedSellerId", sellerEmail);
-  window.location.href = "profile.html";
-}
-
 
   loadItemDetails();
 </script>
-
 
 </body>
 </html>
