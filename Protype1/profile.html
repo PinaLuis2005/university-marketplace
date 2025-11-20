@@ -156,16 +156,10 @@
     if (!enriched.name) enriched.name = enriched.email || "Student";
     if (!enriched.major) enriched.major = "Major not set";
     if (!enriched.university) enriched.university = "University";
-    if (!enriched.residence) enriched.residence = "Residence not set";
-    if (!enriched.contactMethod) enriched.contactMethod = "Prefer not to share";
-    if (!enriched.bio) enriched.bio = "No bio yet.";
-    if (!enriched.gradYear) enriched.gradYear = "—";
     if (!enriched.totalRatings || !enriched.numRatings) {
       enriched.totalRatings = enriched.totalRatings || 24;
       enriched.numRatings = enriched.numRatings || 6;
     }
-    const parsedSold = parseInt(enriched.itemsSold);
-    enriched.itemsSold = !isNaN(parsedSold) ? parsedSold : 0;
     return enriched;
   };
 
@@ -229,9 +223,6 @@
     document.getElementById("userUniversity").textContent = enrichedUser.university
       ? `🏛️ ${enrichedUser.university}`
       : "";
-    document.getElementById("userResidence").textContent = enrichedUser.residence || "Residence not set";
-    document.getElementById("userContact").textContent = enrichedUser.contactMethod || "Contact not set";
-    document.getElementById("userGradYear").textContent = enrichedUser.gradYear || "—";
     document.getElementById("userBio").textContent = enrichedUser.bio || "No bio yet.";
 
     const avg = enrichedUser.numRatings
@@ -247,9 +238,7 @@
 
     const items = JSON.parse(localStorage.getItem("marketplaceItems")) || [];
     const listings = items.filter(i => i.sellerEmail === enrichedUser.email);
-    const soldCount = listings.filter(i => i.sold).length;
-    const displayedSold = Math.max(soldCount, enrichedUser.itemsSold || 0);
-    document.getElementById("itemsSold").textContent = displayedSold;
+    document.getElementById("itemsSold").textContent = listings.filter(i => i.sold).length;
 
     const grid = document.getElementById("userListings");
     grid.innerHTML =

@@ -99,9 +99,7 @@ const messageInput = document.getElementById("messageInput");
 const sendBtn = document.getElementById("sendBtn");
 const voiceBtn = document.getElementById("voiceBtn");
 const photoBtn = document.getElementById("photoBtn");
-const videoBtn = document.getElementById("videoBtn");
 const photoInput = document.getElementById("photoInput");
-const videoInput = document.getElementById("videoInput");
 
 let currentChatPartner = null;
 
@@ -111,28 +109,6 @@ function resolveName(email, convo) {
   if (found && found.name) return found.name;
   if (convo?.labels && convo.labels[email]) return convo.labels[email];
   return email;
-}
-
-function syncConversationLabels(userEmail) {
-  const users = getUsers();
-  const convos = getConversations();
-  let changed = false;
-
-  convos.forEach(convo => {
-    const partner = convo.participants.find(p => p !== userEmail) || convo.participants[0];
-    if (!partner) return;
-    const partnerUser = users.find(u => u.email === partner);
-    if (partnerUser?.name) {
-      convo.labels = convo.labels || {};
-      if (convo.labels[partner] !== partnerUser.name) {
-        convo.labels[partner] = partnerUser.name;
-        changed = true;
-      }
-    }
-  });
-
-  if (changed) saveConversations(convos);
-  return convos;
 }
 
 // --- Load pending chat (from profile or itemdetails) ---
@@ -152,42 +128,24 @@ function loadChatList() {
   if (!user) return;
   chatList.innerHTML = "";
 
-  const convos = syncConversationLabels(user.email).filter(c => c.participants.includes(user.email));
+  const convos = getConversations().filter(c => c.participants.includes(user.email));
 
   if (convos.length === 0) {
     chatList.innerHTML = "<li class='conversation-item muted'>No conversations yet.</li>";
     return;
   }
 
-  convos
-    .sort((a, b) => {
-      const lastA = a.messages.at(-1)?.timestamp || 0;
-      const lastB = b.messages.at(-1)?.timestamp || 0;
-      return lastB - lastA;
-    })
-    .forEach(conv => {
-      const partner = conv.participants.find(p => p !== user.email) || conv.participants[0];
-      const lastMsg = conv.messages.at(-1);
-      const preview = lastMsg
-        ? lastMsg.type === "photo"
-          ? "📷 Photo"
-          : lastMsg.type === "video"
-            ? "🎥 Video"
-          : lastMsg.type === "voice"
-            ? "🎤 Voice message"
-            : (lastMsg.content || lastMsg.text || "").slice(0, 50)
-        : "No messages";
-      const li = document.createElement("li");
-      li.className = "conversation-item";
-      li.dataset.partner = partner;
-      li.innerHTML = `
-        <div class="name">${resolveName(partner, conv)}</div>
-        <div class="preview">${preview}</div>
-      `;
-      li.addEventListener("click", () => openChat(partner));
-      if (currentChatPartner === partner) li.classList.add("active");
-      chatList.appendChild(li);
-    });
+  convos.forEach(conv => {
+    const li = document.createElement("li");
+    li.className = "conversation-item";
+    const lastMsg = conv.chat?.at(-1);
+    li.innerHTML = `
+      <div class="name">${conv.with}</div>
+      <div class="preview">${lastMsg ? lastMsg.text.slice(0, 50) : "No messages"}</div>
+    `;
+    li.addEventListener("click", () => openChat(conv.with));
+    chatList.appendChild(li);
+  });
 }
 
 // --- Open Chat ---
@@ -197,13 +155,14 @@ function openChat(partnerEmail, partnerName) {
 
   ensureConversation(user.email, partnerEmail, partnerName);
   currentChatPartner = partnerEmail;
-
   Array.from(chatList.children).forEach(li => {
-    li.classList.toggle("active", li.dataset.partner === partnerEmail);
+    if (li.textContent.includes(partnerEmail)) {
+      li.classList.add("active");
+    } else {
+      li.classList.remove("active");
+    }
   });
-
-  const convo = getConversations().find(c => c.key === conversationKey(user.email, partnerEmail));
-  chatHeader.textContent = `Chat with ${resolveName(partnerEmail, convo)}`;
+  chatHeader.textContent = `Chat with ${partnerEmail}`;
   messageInput.disabled = false;
   sendBtn.disabled = false;
   messageInput.focus();
@@ -230,9 +189,6 @@ function renderMessages() {
     let body = "";
     if (msg.type === "photo") {
       body = `<div class="message-photo">${msg.content ? `<img src="${msg.content}" alt="Photo" />` : '<div class="photo-placeholder">Photo</div>'}</div>`;
-    } else if (msg.type === "video") {
-      const placeholder = '<div class="video-placeholder">Video</div>';
-      body = `<div class="message-video">${msg.content ? `<video src="${msg.content}" controls></video>` : placeholder}</div>`;
     } else if (msg.type === "voice") {
       body = `<div class="voice-chip">🎤 Voice message</div>`;
     } else {
@@ -305,7 +261,7 @@ function pushMessage(type, content) {
     currentChatPartner,
     "message",
     "New Message",
-    `${user.name || user.email} sent you a ${type === "voice" ? "voice message" : type === "photo" ? "photo" : type === "video" ? "video" : "message"}.`
+    `${user.name || user.email} sent you a ${type === "voice" ? "voice message" : type === "photo" ? "photo" : "message"}.`
   );
 
   renderMessages();
@@ -343,19 +299,6 @@ photoInput?.addEventListener("change", e => {
   reader.onload = ev => {
     pushMessage("photo", ev.target.result);
     photoInput.value = "";
-  };
-  reader.readAsDataURL(file);
-});
-
-videoBtn?.addEventListener("click", () => videoInput?.click());
-
-videoInput?.addEventListener("change", e => {
-  const file = e.target.files?.[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = ev => {
-    pushMessage("video", ev.target.result);
-    videoInput.value = "";
   };
   reader.readAsDataURL(file);
 });
