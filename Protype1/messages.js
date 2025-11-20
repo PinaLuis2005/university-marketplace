@@ -19,31 +19,8 @@ function getCurrentUser() {
   return users.find(u => u.email === id) || null;
 }
 
-function normalizeStoredConversations(raw) {
-  if (!raw) return [];
-  if (Array.isArray(raw)) return raw;
-  if (raw && typeof raw === "object" && raw.conversations) {
-    const userEmail = raw.currentUser || getCurrentUser()?.email || "";
-    return Object.entries(raw.conversations).map(([partner, messages = []]) => ({
-      key: conversationKey(userEmail, partner),
-      participants: [userEmail, partner],
-      labels: { [partner]: partner },
-      messages: messages.map(m => ({
-        from: m.from,
-        type: m.type === "photo" ? "image" : m.type || "text",
-        content: m.content || m.text || m.src,
-        text: m.text || m.content || m.src,
-        time: m.time,
-        timestamp: m.timestamp || Date.now()
-      }))
-    }));
-  }
-  return [];
-}
-
 function getConversations() {
-  const stored = JSON.parse(localStorage.getItem(CONVERSATION_KEY));
-  return normalizeStoredConversations(stored);
+  return JSON.parse(localStorage.getItem(CONVERSATION_KEY)) || [];
 }
 
 function saveConversations(data) {
@@ -55,12 +32,9 @@ function conversationKey(a, b) {
 }
 
 function ensureConversation(userEmail, partnerEmail, partnerName) {
-  let convos = normalizeConversationsFor(userEmail);
+  let convos = getConversations();
   const key = conversationKey(userEmail, partnerEmail);
   let convo = convos.find(c => c.key === key);
-
-  ensureUserRecord(userEmail);
-  ensureUserRecord(partnerEmail, partnerName);
 
   if (!convo) {
     convo = {
@@ -109,81 +83,13 @@ function seedLegacyConversations(user) {
   if (changed) saveConversations(convos);
 }
 
-function ensureUserRecord(email, name) {
-  if (!email) return;
-  const users = getUsers();
-  const idx = users.findIndex(u => u.email === email);
-  if (idx === -1) {
-    users.push({ email, name: name || email });
-  } else if (name && !users[idx].name) {
-    users[idx].name = name;
-  }
-  saveUsers(users);
-}
-
-function normalizeConversationsFor(userEmail) {
-  const convos = getConversations();
-  let changed = false;
-
-  const normalized = convos
-    .map(convo => {
-      const participants = Array.isArray(convo.participants)
-        ? convo.participants.filter(Boolean)
-        : [];
-
-      if ((!participants || participants.length < 2) && convo.key?.includes("::")) {
-        const [a, b] = convo.key.split("::");
-        if (a && b) {
-          participants.push(a, b);
-          changed = true;
-        }
-      }
-
-      const fixedMessages = (convo.messages || []).map(msg => {
-        const mappedType = msg.type === "photo" ? "image" : msg.type || "text";
-        return {
-          ...msg,
-          type: mappedType,
-          content: msg.content || msg.text || msg.src,
-          text: msg.text || msg.content || msg.src,
-          timestamp: msg.timestamp || Date.now()
-        };
-      });
-
-      const cleaned = {
-        ...convo,
-        participants,
-        labels: convo.labels || {},
-        messages: fixedMessages
-      };
-
-      if (participants.length === 2) {
-        const partner = participants.find(p => p !== userEmail) || participants[0];
-        const partnerUser = getUsers().find(u => u.email === partner);
-        if (partnerUser?.name && cleaned.labels[partner] !== partnerUser.name) {
-          cleaned.labels[partner] = partnerUser.name;
-          changed = true;
-        }
-      }
-
-      return cleaned;
-    })
-    .filter(c => Array.isArray(c.participants) && c.participants.includes(userEmail));
-
-  if (changed) saveConversations(normalized);
-  return normalized;
-}
-
 // Ensure user logged in
 const activeUser = getCurrentUser();
 if (!activeUser) {
   window.location.href = "login_signup.html";
 }
 
-if (activeUser) {
-  ensureUserRecord(activeUser.email, activeUser.name);
-  seedLegacyConversations(activeUser);
-}
+if (activeUser) seedLegacyConversations(activeUser);
 
 // --- UI Elements ---
 const chatList = document.getElementById("chatList");
@@ -193,9 +99,7 @@ const messageInput = document.getElementById("messageInput");
 const sendBtn = document.getElementById("sendBtn");
 const voiceBtn = document.getElementById("voiceBtn");
 const photoBtn = document.getElementById("photoBtn");
-const videoBtn = document.getElementById("videoBtn");
 const photoInput = document.getElementById("photoInput");
-const videoInput = document.getElementById("videoInput");
 
 let currentChatPartner = null;
 
@@ -204,29 +108,7 @@ function resolveName(email, convo) {
   const found = users.find(u => u.email === email);
   if (found && found.name) return found.name;
   if (convo?.labels && convo.labels[email]) return convo.labels[email];
-  return email || "Unknown user";
-}
-
-function syncConversationLabels(userEmail) {
-  const users = getUsers();
-  const convos = normalizeConversationsFor(userEmail);
-  let changed = false;
-
-  convos.forEach(convo => {
-    const partner = convo.participants.find(p => p !== userEmail) || convo.participants[0];
-    if (!partner) return;
-    const partnerUser = users.find(u => u.email === partner);
-    if (partnerUser?.name) {
-      convo.labels = convo.labels || {};
-      if (convo.labels[partner] !== partnerUser.name) {
-        convo.labels[partner] = partnerUser.name;
-        changed = true;
-      }
-    }
-  });
-
-  if (changed) saveConversations(convos);
-  return convos;
+  return email;
 }
 
 // --- Load pending chat (from profile or itemdetails) ---
@@ -235,7 +117,7 @@ const pendingMeta = localStorage.getItem("openChatMeta");
 if (pendingChat && activeUser) {
   const meta = pendingMeta ? JSON.parse(pendingMeta) : {};
   ensureConversation(activeUser.email, pendingChat, meta.name || pendingChat);
-  openChat(pendingChat, meta.name || pendingChat);
+  openChat(pendingChat, meta.name);
   localStorage.removeItem("openChatWith");
   localStorage.removeItem("openChatMeta");
 }
@@ -246,55 +128,24 @@ function loadChatList() {
   if (!user) return;
   chatList.innerHTML = "";
 
-  const convos = syncConversationLabels(user.email)
-    .map(convo => {
-      if (Array.isArray(convo.participants) && convo.participants.length === 2) return convo;
-      if (convo.key?.includes("::")) {
-        const [a, b] = convo.key.split("::");
-        return { ...convo, participants: [a, b] };
-      }
-      return null;
-    })
-    .filter(Boolean)
-    .filter(c => c.participants.includes(user.email));
+  const convos = getConversations().filter(c => c.participants.includes(user.email));
 
   if (convos.length === 0) {
     chatList.innerHTML = "<li class='conversation-item muted'>No conversations yet.</li>";
     return;
   }
 
-  convos
-    .sort((a, b) => {
-      const lastA = a.messages.at(-1)?.timestamp || 0;
-      const lastB = b.messages.at(-1)?.timestamp || 0;
-      return lastB - lastA;
-    })
-    .forEach(conv => {
-      const partner = conv.participants.find(p => p !== user.email) || conv.participants[0];
-      if (!partner) return;
-      const lastMsg = conv.messages.at(-1);
-      const preview = lastMsg
-        ? lastMsg.type === "image" || lastMsg.type === "photo"
-          ? "📷 Image"
-          : lastMsg.type === "video"
-            ? "🎥 Video"
-            : lastMsg.type === "voice"
-              ? "🎤 Voice message"
-              : (lastMsg.content || lastMsg.text || "").slice(0, 50)
-        : "No messages";
-      const li = document.createElement("li");
-      li.className = "conversation-item";
-      li.dataset.partner = partner;
-      const partnerName = resolveName(partner, conv);
-      li.dataset.partnerName = partnerName;
-      li.innerHTML = `
-        <div class="name">${partnerName}</div>
-        <div class="preview">${preview}</div>
-      `;
-      li.addEventListener("click", () => openChat(partner, partnerName));
-      if (currentChatPartner === partner) li.classList.add("active");
-      chatList.appendChild(li);
-    });
+  convos.forEach(conv => {
+    const li = document.createElement("li");
+    li.className = "conversation-item";
+    const lastMsg = conv.chat?.at(-1);
+    li.innerHTML = `
+      <div class="name">${conv.with}</div>
+      <div class="preview">${lastMsg ? lastMsg.text.slice(0, 50) : "No messages"}</div>
+    `;
+    li.addEventListener("click", () => openChat(conv.with));
+    chatList.appendChild(li);
+  });
 }
 
 // --- Open Chat ---
@@ -304,15 +155,14 @@ function openChat(partnerEmail, partnerName) {
 
   ensureConversation(user.email, partnerEmail, partnerName);
   currentChatPartner = partnerEmail;
-
   Array.from(chatList.children).forEach(li => {
-    li.classList.toggle("active", li.dataset.partner === partnerEmail);
+    if (li.textContent.includes(partnerEmail)) {
+      li.classList.add("active");
+    } else {
+      li.classList.remove("active");
+    }
   });
-
-  const convo = normalizeConversationsFor(user.email).find(
-    c => c.key === conversationKey(user.email, partnerEmail)
-  );
-  chatHeader.textContent = `Chat with ${resolveName(partnerEmail, convo)}`;
+  chatHeader.textContent = `Chat with ${partnerEmail}`;
   messageInput.disabled = false;
   sendBtn.disabled = false;
   messageInput.focus();
@@ -324,9 +174,7 @@ function renderMessages() {
   const user = getCurrentUser();
   if (!user || !currentChatPartner) return;
 
-  const conv = normalizeConversationsFor(user.email).find(
-    c => c.key === conversationKey(user.email, currentChatPartner)
-  );
+  const conv = getConversations().find(c => c.key === conversationKey(user.email, currentChatPartner));
   chatMessages.innerHTML = "";
 
   if (!conv || !conv.messages.length) {
@@ -339,11 +187,8 @@ function renderMessages() {
     div.classList.add("message", msg.from === user.email ? "sent" : "received");
 
     let body = "";
-    if (msg.type === "image" || msg.type === "photo") {
+    if (msg.type === "photo") {
       body = `<div class="message-photo">${msg.content ? `<img src="${msg.content}" alt="Photo" />` : '<div class="photo-placeholder">Photo</div>'}</div>`;
-    } else if (msg.type === "video") {
-      const placeholder = '<div class="video-placeholder">Video</div>';
-      body = `<div class="message-video">${msg.content ? `<video src="${msg.content}" controls></video>` : placeholder}</div>`;
     } else if (msg.type === "voice") {
       body = `<div class="voice-chip">🎤 Voice message</div>`;
     } else {
@@ -364,8 +209,6 @@ function renderMessages() {
 
 // --- Message helpers ---
 function addToUserMessages(ownerEmail, partnerEmail, msg) {
-  ensureUserRecord(ownerEmail);
-  ensureUserRecord(partnerEmail);
   const users = getUsers();
   let owner = users.find(u => u.email === ownerEmail);
   if (!owner) {
@@ -418,7 +261,7 @@ function pushMessage(type, content) {
     currentChatPartner,
     "message",
     "New Message",
-    `${user.name || user.email} sent you a ${type === "voice" ? "voice message" : type === "image" ? "image" : type === "video" ? "video" : "message"}.`
+    `${user.name || user.email} sent you a ${type === "voice" ? "voice message" : type === "photo" ? "photo" : "message"}.`
   );
 
   renderMessages();
@@ -454,21 +297,8 @@ photoInput?.addEventListener("change", e => {
   if (!file) return;
   const reader = new FileReader();
   reader.onload = ev => {
-    pushMessage("image", ev.target.result);
+    pushMessage("photo", ev.target.result);
     photoInput.value = "";
-  };
-  reader.readAsDataURL(file);
-});
-
-videoBtn?.addEventListener("click", () => videoInput?.click());
-
-videoInput?.addEventListener("change", e => {
-  const file = e.target.files?.[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = ev => {
-    pushMessage("video", ev.target.result);
-    videoInput.value = "";
   };
   reader.readAsDataURL(file);
 });
