@@ -272,6 +272,8 @@ function loadMarketplace() {
     card.innerHTML = `
       <div class="relative h-[250px] bg-neutral-100 overflow-hidden">
         <img src="${img}" alt="${item.title}" class="marketplace-image transition duration-200 group-hover:scale-105">
+      <div class="relative aspect-[4/3] bg-neutral-100 overflow-hidden">
+        <img src="${img}" alt="${item.title}" class="h-full w-full object-cover transition duration-200 group-hover:scale-105">
       </div>
       <div class="item-details p-4 space-y-2">
         <div class="flex items-start justify-between gap-3">
