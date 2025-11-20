@@ -3,83 +3,102 @@
 <head>
   <meta charset="UTF-8">
   <title>Order History</title>
+  <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="order-history.css">
 </head>
-<body>
+<body class="bg-neutral-50">
   <script>
   if (!localStorage.getItem("loggedInUser")) {
-    // Save the page the user tried to access
     localStorage.setItem("redirectAfterLogin", window.location.href);
-    // Send them to login page
     window.location.href = "login_signup.html";
   }
-</script>
+  </script>
 
-
-  <!-- Top Navigation Bar -->
-  <div class="top-bar">
-    <div class="site-title">University Marketplace</div>
-    <div class="nav-icons">
-      <a href="index.html" title="Home">🏠</a>
-      <a href="saved.html" title="Saved">❤️</a>
-      <a href="post.html" title="Post Item">➕</a>
-      <a href="messages.html" title="Messages">💬</a>
-      <a href="profile.html" title="Profile">👤</a>
-      <a href="order-history.html" title="Orders">📦</a>
+  <header class="top-bar">
+    <div class="brand-group">
+      <div class="brand-logo">U</div>
+      <div class="logo-title">University Marketplace</div>
     </div>
-  </div>
 
-  <div class="bubble-container">
-    <h1>📦 Order History</h1>
+    <nav class="nav-bubbles" aria-label="Main navigation">
+      <a href="messages.html" class="nav-bubble">💬 Messages</a>
+      <a href="index.html" class="nav-bubble">🛒 Marketplace</a>
+      <a href="seller-dashboard.html" class="nav-bubble">📋 My Listings</a>
+      <a href="postitem.html" class="nav-bubble sell-button">➕ Sell Item</a>
+    </nav>
 
-    <div class="orders-list">
+    <div class="top-actions">
+      <div class="search-container">
+        <input type="text" class="search-input" placeholder="Search orders" aria-label="Search orders">
+        <button class="search-btn" aria-label="Search">🔍</button>
+      </div>
+      <div class="top-icons">
+        <a href="notifications.html" class="icon-bubble" aria-label="Notifications">🔔</a>
+        <a href="profile.html" class="icon-bubble" aria-label="Profile">👤</a>
+      </div>
+    </div>
+  </header>
 
-      <div class="order-card">
+  <main class="page-shell content-stack">
+    <div class="section-header">
+      <div>
+        <h1 class="section-title">📦 Order History</h1>
+        <p class="muted">Track your latest purchases and delivery status.</p>
+      </div>
+    </div>
+
+    <section class="section-card orders-list">
+      <article class="order-card">
         <div class="order-header">
-          <strong>Order #12345</strong>
-          <span class="order-date">Sep 12, 2025</span>
+          <div>
+            <strong>Order #12345</strong>
+            <span class="order-date">Sep 12, 2025</span>
+          </div>
           <span class="order-status status-delivered">Delivered</span>
         </div>
         <div class="order-body">
-          <img src="https://via.placeholder.com/100x100" alt="Item Image">
+          <div class="listing-image-container compact">
+            <img src="https://via.placeholder.com/100x100" alt="Item Image" class="marketplace-image">
+          </div>
           <div class="order-info">
             <p><strong>Mini Fridge</strong></p>
-            <p>Quantity: 1</p>
+            <p class="muted">Quantity: 1</p>
           </div>
           <div class="order-total">
             <p>Total: <strong>$75</strong></p>
           </div>
         </div>
         <div class="order-actions">
-          <button class="view-details">View Details</button>
+          <button class="btn-secondary">View Details</button>
         </div>
-      </div>
+      </article>
 
-      <div class="order-card">
+      <article class="order-card">
         <div class="order-header">
-          <strong>Order #12344</strong>
-          <span class="order-date">Aug 30, 2025</span>
+          <div>
+            <strong>Order #12344</strong>
+            <span class="order-date">Aug 30, 2025</span>
+          </div>
           <span class="order-status status-shipped">Shipped</span>
         </div>
         <div class="order-body">
-          <img src="https://via.placeholder.com/100x100" alt="Item Image">
+          <div class="listing-image-container compact">
+            <img src="https://via.placeholder.com/100x100" alt="Item Image" class="marketplace-image">
+          </div>
           <div class="order-info">
             <p><strong>Desk Lamp</strong></p>
-            <p>Quantity: 2</p>
+            <p class="muted">Quantity: 2</p>
           </div>
           <div class="order-total">
             <p>Total: <strong>$40</strong></p>
           </div>
         </div>
         <div class="order-actions">
-          <button class="view-details">View Details</button>
+          <button class="btn-secondary">View Details</button>
         </div>
-      </div>
-
-      <!-- More order-card blocks here -->
-
-    </div>
-  </div>
+      </article>
+    </section>
+  </main>
 
 </body>
 </html>
