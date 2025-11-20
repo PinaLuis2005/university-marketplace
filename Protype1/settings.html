@@ -284,6 +284,13 @@
   function loadSettings() {
     const user = getCurrentUser();
     if (!user) return;
+    const defaults = withProfileDefaults(user);
+    document.getElementById("fullName").value = defaults.name || "";
+    document.getElementById("major").value = defaults.major || "";
+    document.getElementById("university").value = defaults.university || "";
+    document.getElementById("feedbackScore").value = defaults.numRatings
+      ? (defaults.totalRatings / defaults.numRatings).toFixed(1)
+      : "";
     document.getElementById("currentEmailPhone").value = user.email || "";
     document.getElementById("bio").value = user.bio || "";
     if (user.profilePic) document.getElementById("profilePreviewImg").src = user.profilePic;

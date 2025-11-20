@@ -218,15 +218,19 @@
 
   function messageSeller() {
     const seller = localStorage.getItem("sellerEmail");
-    const currentUser = localStorage.getItem("loggedInUserId");
+    const sellerName = localStorage.getItem("sellerName") || seller;
+    const currentUser =
+      JSON.parse(localStorage.getItem("userProfile")) ||
+      JSON.parse(localStorage.getItem("loggedInUser"));
 
-    if (!currentUser) {
+    if (!currentUser || !currentUser.email) {
       alert("Please log in to message the seller.");
+      localStorage.setItem("redirectAfterLogin", "itemdetails.html");
       window.location.href = "login_signup.html";
       return;
     }
 
-    if (seller === currentUser) {
+    if (seller === currentUser.email) {
       alert("You can’t message yourself!");
       return;
     }
