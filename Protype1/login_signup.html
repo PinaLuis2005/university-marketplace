@@ -22,9 +22,16 @@
 <body>
 
 <script>
-  // If already logged in, redirect home
-  if (localStorage.getItem("loggedInUserId")) {
-    window.location.href = "index.html";
+  // If already logged in, honor any saved redirect or go home
+  const existingUser = JSON.parse(localStorage.getItem("userProfile")) || JSON.parse(localStorage.getItem("loggedInUser"));
+  if (existingUser && existingUser.email) {
+    const redirectPage = localStorage.getItem("redirectAfterLogin");
+    if (redirectPage) {
+      localStorage.removeItem("redirectAfterLogin");
+      window.location.href = redirectPage;
+    } else {
+      window.location.href = "index.html";
+    }
   }
 </script>
 
@@ -106,6 +113,11 @@
   function saveUsers(users) {
     localStorage.setItem("users", JSON.stringify(users));
   }
+  function persistSession(user) {
+    localStorage.setItem("userProfile", JSON.stringify(user));
+    localStorage.setItem("loggedInUser", JSON.stringify(user));
+    localStorage.setItem("loggedInUserId", user.email);
+  }
 
   // Toggle password visibility
   function togglePassword(id) {
@@ -124,9 +136,16 @@
     const user = users.find(u => u.email === identity && u.password === password);
 
     if (user) {
-      localStorage.setItem("loggedInUserId", user.email);
+      persistSession(user);
       alert("Login successful!");
-      window.location.href = "index.html";
+
+      const redirectPage = localStorage.getItem("redirectAfterLogin");
+      if (redirectPage) {
+        localStorage.removeItem("redirectAfterLogin");
+        window.location.href = redirectPage;
+      } else {
+        window.location.href = "index.html";
+      }
     } else {
       alert("Invalid email or password.");
     }
@@ -166,7 +185,7 @@
     saveUsers(users);
 
     // Auto-login new user
-    localStorage.setItem("loggedInUserId", newUser.email);
+    persistSession(newUser);
 
     alert("Account created successfully!");
     window.location.href = "index.html";

@@ -3,87 +3,118 @@
 <head>
   <meta charset="UTF-8">
   <title>Payment Methods</title>
+  <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="payment-methods.css">
 </head>
+<body class="bg-neutral-50">
 <header class="top-bar">
-  <div class="logo-title">🏫 University Marketplace</div>
+  <div class="brand-group">
+    <div class="brand-logo">U</div>
+    <div class="logo-title">University Marketplace</div>
+  </div>
 
-  <nav class="nav-bubbles">
+  <nav class="nav-bubbles" aria-label="Main navigation">
     <a href="messages.html" class="nav-bubble">💬 Messages</a>
     <a href="index.html" class="nav-bubble active">🛒 Marketplace</a>
     <a href="seller-dashboard.html" class="nav-bubble">📋 My Listings</a>
     <a href="postitem.html" class="nav-bubble sell-button">➕ Sell Item</a>
   </nav>
 
-  <div class="top-right">
-    <a href="notifications.html" class="icon-bubble">🔔 Notifications</a>
-    <a href="profile.html" class="icon-bubble">👤 Luis Garcia</a>
+  <div class="top-actions">
+    <div class="search-container">
+      <input type="text" class="search-input" placeholder="Search payments" aria-label="Search payments">
+      <button class="search-btn" aria-label="Search">🔍</button>
+    </div>
+    <div class="top-icons">
+      <a href="notifications.html" class="icon-bubble" aria-label="Notifications">🔔</a>
+      <a href="profile.html" class="icon-bubble" aria-label="Profile">👤 Luis Garcia</a>
+    </div>
   </div>
 </header>
-<body>
   <script>
-  if (!localStorage.getItem("loggedInUser")) {
-    // Save the page the user tried to access
+  const authUser = JSON.parse(localStorage.getItem("userProfile")) || JSON.parse(localStorage.getItem("loggedInUser"));
+  if (!authUser || !authUser.email) {
     localStorage.setItem("redirectAfterLogin", window.location.href);
-    // Send them to login page
     window.location.href = "login_signup.html";
+  } else {
+    localStorage.setItem("userProfile", JSON.stringify(authUser));
+    localStorage.setItem("loggedInUser", JSON.stringify(authUser));
+    localStorage.setItem("loggedInUserId", authUser.email);
   }
-</script>
+  </script>
 
-
-  <div class="payment-bubble">
-    <h1>💳 Payment Methods</h1>
-
-    <div class="form-section">
-      <label for="cardholder-name">Name on Card</label>
-      <input type="text" id="cardholder-name" placeholder="Enter name as shown on card">
-
-      <label for="card-number">Card Number</label>
-      <input type="text" id="card-number" placeholder="xxxx xxxx xxxx xxxx">
-
-      <div class="row">
-        <div class="col">
-          <label for="expiration-date">Expiration Date</label>
-          <input type="text" id="expiration-date" placeholder="MM/YY">
-        </div>
-        <div class="col">
-          <label for="cvv">CVV</label>
-          <input type="text" id="cvv" placeholder="123">
-        </div>
-      </div>
-
-      <label for="billing-address">Billing Address</label>
-      <input type="text" id="billing-address" placeholder="Street, City, ZIP">
-
-      <label for="payment-type">Payment Type</label>
-      <select id="payment-type">
-        <option value="credit">Credit / Debit Card</option>
-        <option value="paypal">PayPal</option>
-        <!-- you can add more types later -->
-      </select>
-
-      <button class="save-btn">Save Payment Method</button>
-    </div>
-
-    <div class="existing-methods">
-      <h2>Your Saved Methods</h2>
-      <div class="method-card">
-        <div class="method-info">
-          <strong>Visa •••• 1234</strong>
-          <span>Expires 08/25</span>
-        </div>
-        <button class="delete-method">Delete</button>
-      </div>
-      <div class="method-card">
-        <div class="method-info">
-          <strong>Mastercard •••• 5678</strong>
-          <span>Expires 11/24</span>
-        </div>
-        <button class="delete-method">Delete</button>
+  <main class="page-shell content-stack">
+    <div class="section-header">
+      <div>
+        <h1 class="section-title">💳 Payment Methods</h1>
+        <p class="muted">Securely manage cards and billing preferences.</p>
       </div>
     </div>
 
-  </div>
+    <section class="section-card">
+      <div class="form-grid">
+        <div class="form-field">
+          <label for="cardholder-name">Name on Card</label>
+          <input type="text" id="cardholder-name" placeholder="Enter name as shown on card">
+        </div>
+        <div class="form-field">
+          <label for="payment-type">Payment Type</label>
+          <select id="payment-type">
+            <option value="credit">Credit / Debit Card</option>
+            <option value="paypal">PayPal</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-field">
+          <label for="card-number">Card Number</label>
+          <input type="text" id="card-number" placeholder="xxxx xxxx xxxx xxxx">
+        </div>
+        <div class="form-field two-col">
+          <div>
+            <label for="expiration-date">Expiration Date</label>
+            <input type="text" id="expiration-date" placeholder="MM/YY">
+          </div>
+          <div>
+            <label for="cvv">CVV</label>
+            <input type="text" id="cvv" placeholder="123">
+          </div>
+        </div>
+      </div>
+
+      <div class="form-field">
+        <label for="billing-address">Billing Address</label>
+        <input type="text" id="billing-address" placeholder="Street, City, ZIP">
+      </div>
+
+      <button class="btn-primary full-width">Save Payment Method</button>
+    </section>
+
+    <section class="section-card">
+      <div class="section-header">
+        <h2 class="section-title">Your Saved Methods</h2>
+        <span class="muted">Quick access</span>
+      </div>
+      <div class="methods-list">
+        <div class="method-card">
+          <div class="method-info">
+            <strong>Visa •••• 1234</strong>
+            <span>Expires 08/25</span>
+          </div>
+          <button class="btn-secondary danger">Delete</button>
+        </div>
+        <div class="method-card">
+          <div class="method-info">
+            <strong>Mastercard •••• 5678</strong>
+            <span>Expires 11/24</span>
+          </div>
+          <button class="btn-secondary danger">Delete</button>
+        </div>
+      </div>
+    </section>
+
+  </main>
 
 </body>
 </html>

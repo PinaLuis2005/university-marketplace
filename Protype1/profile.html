@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>User Profile</title>
+  <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="profile.css">
   <style>
     .sold-overlay {
@@ -68,20 +69,29 @@
     }
   </style>
 </head>
-<body>
+<body class="bg-neutral-50">
 
 <header class="top-bar">
-  <div class="logo-title">🏫 University Marketplace</div>
-  <nav class="nav-bubbles">
+  <div class="brand-group">
+    <div class="brand-logo">U</div>
+    <div class="logo-title">University Marketplace</div>
+  </div>
+  <nav class="nav-bubbles" aria-label="Main navigation">
     <a href="messages.html" class="nav-bubble">💬 Messages</a>
     <a href="index.html" class="nav-bubble">🛒 Marketplace</a>
     <a href="seller-dashboard.html" class="nav-bubble">📋 My Listings</a>
-    <a href="postitem.html" class="nav-bubble">➕ Sell Item</a>
+    <a href="postitem.html" class="nav-bubble sell-button">➕ Sell Item</a>
   </nav>
-  <div class="top-right">
-    <a href="notifications.html" class="icon-bubble">🔔 Notifications</a>
-    <a href="profile.html" class="icon-bubble active">👤 Profile</a>
-    <a href="settings.html" class="icon-bubble">⚙️ Settings</a>
+  <div class="top-actions">
+    <div class="search-container">
+      <input type="text" class="search-input" placeholder="Search" aria-label="Search">
+      <button class="search-btn" aria-label="Search">🔍</button>
+    </div>
+    <div class="top-icons">
+      <a href="notifications.html" class="icon-bubble" aria-label="Notifications">🔔</a>
+      <a href="profile.html" class="icon-bubble active" aria-label="Profile">👤</a>
+      <a href="settings.html" class="icon-bubble" aria-label="Settings">⚙️</a>
+    </div>
   </div>
 </header>
 
@@ -94,6 +104,7 @@
     <div class="badge-major-stats">
       <span class="badge">🎓 Student</span>
       <span class="major" id="userMajor"></span>
+      <span class="muted" id="userUniversity"></span>
       <div class="stars" id="starsContainer">
         <span class="star" data-value="1">★</span>
         <span class="star" data-value="2">★</span>
@@ -103,6 +114,20 @@
       </div>
       <span id="userRatingText">(0.0)</span>
       <span class="items-sold">📦 <span id="itemsSold">0</span> items sold</span>
+    </div>
+    <div class="profile-meta">
+      <div class="meta-tile">
+        <p class="muted">🏠 Residence</p>
+        <strong id="userResidence">Not set</strong>
+      </div>
+      <div class="meta-tile">
+        <p class="muted">🎓 Graduation</p>
+        <strong id="userGradYear">N/A</strong>
+      </div>
+      <div class="meta-tile">
+        <p class="muted">📧 Contact</p>
+        <strong id="userContact">Not provided</strong>
+      </div>
     </div>
     <p class="bio" id="userBio"></p>
     <div class="action-buttons" id="profileActions"></div>
@@ -126,7 +151,27 @@
   const getUsers = () => JSON.parse(localStorage.getItem("users")) || [];
   const saveUsers = users => localStorage.setItem("users", JSON.stringify(users));
 
+  const withProfileDefaults = user => {
+    const enriched = { ...user };
+    if (!enriched.name) enriched.name = enriched.email || "Student";
+    if (!enriched.major) enriched.major = "Major not set";
+    if (!enriched.university) enriched.university = "University";
+    if (!enriched.residence) enriched.residence = "Residence not set";
+    if (!enriched.contactMethod) enriched.contactMethod = "Prefer not to share";
+    if (!enriched.bio) enriched.bio = "No bio yet.";
+    if (!enriched.gradYear) enriched.gradYear = "—";
+    if (!enriched.totalRatings || !enriched.numRatings) {
+      enriched.totalRatings = enriched.totalRatings || 24;
+      enriched.numRatings = enriched.numRatings || 6;
+    }
+    const parsedSold = parseInt(enriched.itemsSold);
+    enriched.itemsSold = !isNaN(parsedSold) ? parsedSold : 0;
+    return enriched;
+  };
+
   const getCurrentUser = () => {
+    const storedProfile = JSON.parse(localStorage.getItem("userProfile"));
+    if (storedProfile && storedProfile.email) return storedProfile;
     const obj = JSON.parse(localStorage.getItem("loggedInUser"));
     if (obj && obj.email) return obj;
     const id = localStorage.getItem("loggedInUserId");
@@ -135,6 +180,19 @@
   };
 
   const getUserByEmail = email => getUsers().find(u => u.email === email) || null;
+
+  const persistUser = user => {
+    const users = getUsers();
+    const idx = users.findIndex(u => u.email === user.email);
+    if (idx >= 0) {
+      users[idx] = user;
+    } else {
+      users.push(user);
+    }
+    saveUsers(users);
+    localStorage.setItem("userProfile", JSON.stringify(user));
+    localStorage.setItem("loggedInUser", JSON.stringify(user));
+  };
 
   const imgSrcFrom = item =>
     (item.images && item.images[0]) || item.image || "https://via.placeholder.com/200";
@@ -150,6 +208,8 @@
       return;
     }
 
+    localStorage.setItem("userProfile", JSON.stringify(loggedUser));
+
     let userToShow;
     if (selectedSellerId && selectedSellerId !== loggedUser.email) {
       userToShow = getUserByEmail(selectedSellerId) || {
@@ -161,24 +221,35 @@
       userToShow = loggedUser;
     }
 
-    document.getElementById("userName").textContent = userToShow.name || "Unknown User";
-    document.getElementById("userMajor").textContent = userToShow.major || "No major set";
-    document.getElementById("userBio").textContent = userToShow.bio || "No bio yet.";
+    const enrichedUser = withProfileDefaults(userToShow);
+    if (enrichedUser.email === loggedUser.email) persistUser(enrichedUser);
 
-    const avg = userToShow.numRatings
-      ? (userToShow.totalRatings / userToShow.numRatings).toFixed(1)
+    document.getElementById("userName").textContent = enrichedUser.name || "Unknown User";
+    document.getElementById("userMajor").textContent = enrichedUser.major || "No major set";
+    document.getElementById("userUniversity").textContent = enrichedUser.university
+      ? `🏛️ ${enrichedUser.university}`
+      : "";
+    document.getElementById("userResidence").textContent = enrichedUser.residence || "Residence not set";
+    document.getElementById("userContact").textContent = enrichedUser.contactMethod || "Contact not set";
+    document.getElementById("userGradYear").textContent = enrichedUser.gradYear || "—";
+    document.getElementById("userBio").textContent = enrichedUser.bio || "No bio yet.";
+
+    const avg = enrichedUser.numRatings
+      ? (enrichedUser.totalRatings / enrichedUser.numRatings).toFixed(1)
       : "0.0";
     document.getElementById("userRatingText").textContent = `(${avg})`;
 
     document.getElementById("profilePic").style.backgroundImage = `url('${
-      userToShow.profilePic || "https://via.placeholder.com/150"
+      enrichedUser.profilePic || "https://via.placeholder.com/150"
     }')`;
-    if (userToShow.coverPhoto)
-      document.getElementById("coverPhoto").style.backgroundImage = `url(${userToShow.coverPhoto})`;
+    if (enrichedUser.coverPhoto)
+      document.getElementById("coverPhoto").style.backgroundImage = `url(${enrichedUser.coverPhoto})`;
 
     const items = JSON.parse(localStorage.getItem("marketplaceItems")) || [];
-    const listings = items.filter(i => i.sellerEmail === userToShow.email);
-    document.getElementById("itemsSold").textContent = listings.filter(i => i.sold).length;
+    const listings = items.filter(i => i.sellerEmail === enrichedUser.email);
+    const soldCount = listings.filter(i => i.sold).length;
+    const displayedSold = Math.max(soldCount, enrichedUser.itemsSold || 0);
+    document.getElementById("itemsSold").textContent = displayedSold;
 
     const grid = document.getElementById("userListings");
     grid.innerHTML =
@@ -200,20 +271,20 @@
     const header = document.getElementById("listingHeader");
     const reviewSection = document.getElementById("reviewSection");
 
-    if (userToShow.email === loggedUser.email) {
+    if (enrichedUser.email === loggedUser.email) {
       header.textContent = "Your Listings";
       actions.innerHTML = "";
       reviewSection.style.display = "none";
     } else {
-      header.textContent = `${userToShow.name || "User"}'s Listings`;
+      header.textContent = `${enrichedUser.name || "User"}'s Listings`;
       actions.innerHTML = `
         <button class="follow-btn">➕ Follow</button>
-        <button class="message-btn" onclick="messageSeller('${userToShow.email}')">💬 Message Seller</button>
+        <button class="message-btn" onclick="messageSeller('${enrichedUser.email}')">💬 Message Seller</button>
       `;
       reviewSection.style.display = "block";
     }
 
-    setupStars(userToShow, loggedUser);
+    setupStars(enrichedUser, loggedUser);
   }
 
   /* === Stars Setup === */
@@ -274,6 +345,11 @@
   }
 
   function messageSeller(email) {
+    const viewedUser = getUserByEmail(email) || {};
+    localStorage.setItem(
+      "openChatMeta",
+      JSON.stringify({ email, name: viewedUser.name || email })
+    );
     localStorage.setItem("openChatWith", email);
     window.location.href = "messages.html";
   }
