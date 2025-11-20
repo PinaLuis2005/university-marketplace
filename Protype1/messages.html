@@ -3,39 +3,61 @@
 <head>
   <meta charset="UTF-8" />
   <title>Messages</title>
+  <link rel="stylesheet" href="styles.css" />
   <link rel="stylesheet" href="messages.css" />
 </head>
-<body>
+<body class="bg-neutral-50">
 
 <header class="top-bar">
-  <div class="logo-title">🏫 University Marketplace</div>
-  <nav class="nav-bubbles">
+  <div class="brand-group">
+    <div class="brand-logo">U</div>
+    <div class="logo-title">University Marketplace</div>
+  </div>
+
+  <nav class="nav-bubbles" aria-label="Main navigation">
     <a href="messages.html" class="nav-bubble active">💬 Messages</a>
     <a href="index.html" class="nav-bubble">🛒 Marketplace</a>
     <a href="seller-dashboard.html" class="nav-bubble">📋 My Listings</a>
-    <a href="postitem.html" class="nav-bubble">➕ Sell Item</a>
+    <a href="postitem.html" class="nav-bubble sell-button">➕ Sell Item</a>
   </nav>
-  <div class="top-right">
-    <a href="profile.html" class="icon-bubble">👤 Profile</a>
-    <a href="settings.html" class="icon-bubble">⚙️ Settings</a>
+
+  <div class="top-actions">
+    <div class="search-container">
+      <input type="text" class="search-input" placeholder="Search conversations" aria-label="Search conversations">
+      <button class="search-btn" aria-label="Search">🔍</button>
+    </div>
+    <div class="top-icons">
+      <a href="notifications.html" class="icon-bubble" aria-label="Notifications">🔔</a>
+      <a href="profile.html" class="icon-bubble" aria-label="Profile">👤</a>
+    </div>
   </div>
 </header>
 
-<div class="messages-container">
-  <aside class="conversations">
-    <h2>Chats</h2>
-    <ul id="chatList"></ul>
-  </aside>
+<main class="page-shell">
+  <div class="messages-layout">
+    <aside class="conversations section-card">
+      <div class="section-header">
+        <h2 class="section-title">Chats</h2>
+        <span class="pill">Live</span>
+      </div>
+      <ul id="chatList" class="conversation-list"></ul>
+    </aside>
 
-  <main class="chat-window">
-    <div class="chat-header" id="chatHeader">Select a conversation</div>
-    <div class="chat-messages" id="chatMessages"></div>
-    <div class="chat-input-area">
-      <input type="text" id="messageInput" placeholder="Type a message..." disabled />
-      <button id="sendBtn" disabled>Send</button>
-    </div>
-  </main>
-</div>
+    <section class="chat-window section-card">
+      <div class="chat-header" id="chatHeader">Select a conversation</div>
+      <div class="chat-messages" id="chatMessages"></div>
+      <div class="chat-input-area">
+        <div class="chat-tools">
+          <button type="button" id="voiceBtn" class="icon-bubble" aria-label="Send voice message">🎤</button>
+          <button type="button" id="photoBtn" class="icon-bubble" aria-label="Send a photo">🖼️</button>
+          <input type="file" id="photoInput" accept="image/*" hidden />
+        </div>
+        <input type="text" id="messageInput" placeholder="Type a message..." />
+        <button id="sendBtn" class="btn-primary">Send</button>
+      </div>
+    </section>
+  </div>
+</main>
 <script src="notificationsHelper.js"></script>
 <script src="messages.js"></script>
 </body>

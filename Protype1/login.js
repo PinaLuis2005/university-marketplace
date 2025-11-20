@@ -7,12 +7,16 @@ if (signInForm) {
     const identity = document.getElementById("signin-identity").value;
     const password = document.getElementById("signin-password").value;
 
-    const user = demoUsers.find(
+    const storedUsers =
+      JSON.parse(localStorage.getItem("users")) || window.demoUsers || [];
+    const user = storedUsers.find(
       u => u.email === identity && u.password === password
     );
 
     if (user) {
+      localStorage.setItem("userProfile", JSON.stringify(user));
       localStorage.setItem("loggedInUser", JSON.stringify(user));
+      localStorage.setItem("loggedInUserId", user.email);
       alert("Login successful!");
 
       // Redirect back to the page user came from, if saved
@@ -31,7 +35,10 @@ if (signInForm) {
 
 // 🔹 Global helper for protected actions
 function requireLogin() {
-  if (!localStorage.getItem("loggedInUser")) {
+  const hasSession =
+    JSON.parse(localStorage.getItem("userProfile")) ||
+    JSON.parse(localStorage.getItem("loggedInUser"));
+  if (!hasSession) {
     // Save current page before redirecting
     localStorage.setItem("redirectAfterLogin", window.location.href);
     window.location.href = "login_signup.html";
