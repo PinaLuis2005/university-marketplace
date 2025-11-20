@@ -52,16 +52,17 @@ function loadChatList() {
 
   const convos = user.messages || [];
   if (convos.length === 0) {
-    chatList.innerHTML = "<li>No conversations yet.</li>";
+    chatList.innerHTML = "<li class='conversation-item muted'>No conversations yet.</li>";
     return;
   }
 
   convos.forEach(conv => {
     const li = document.createElement("li");
+    li.className = "conversation-item";
     const lastMsg = conv.chat?.at(-1);
     li.innerHTML = `
-      <strong>${conv.with}</strong><br>
-      <small>${lastMsg ? lastMsg.text.slice(0, 30) : "No messages"}</small>
+      <div class="name">${conv.with}</div>
+      <div class="preview">${lastMsg ? lastMsg.text.slice(0, 50) : "No messages"}</div>
     `;
     li.addEventListener("click", () => openChat(conv.with));
     chatList.appendChild(li);
@@ -74,6 +75,13 @@ function openChat(partnerEmail) {
   if (!user) return;
 
   currentChatPartner = partnerEmail;
+  Array.from(chatList.children).forEach(li => {
+    if (li.textContent.includes(partnerEmail)) {
+      li.classList.add("active");
+    } else {
+      li.classList.remove("active");
+    }
+  });
   chatHeader.textContent = `Chat with ${partnerEmail}`;
   messageInput.disabled = false;
   sendBtn.disabled = false;
