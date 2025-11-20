@@ -191,6 +191,18 @@
   const imgSrcFrom = item =>
     (item.images && item.images[0]) || item.image || "https://via.placeholder.com/200";
 
+  const ensureUserStub = (email, name) => {
+    if (!email) return;
+    const users = getUsers();
+    const idx = users.findIndex(u => u.email === email);
+    if (idx === -1) {
+      users.push({ email, name: name || email });
+    } else if (name && !users[idx].name) {
+      users[idx].name = name;
+    }
+    saveUsers(users);
+  };
+
   /* === Load Profile === */
   function loadProfile() {
     const loggedUser = getCurrentUser();
