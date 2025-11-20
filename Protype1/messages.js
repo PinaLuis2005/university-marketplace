@@ -1,0 +1,163 @@
+// --- Multi-user helpers ---
+function getUsers() {
+  return JSON.parse(localStorage.getItem("users")) || [];
+}
+
+function saveUsers(users) {
+  localStorage.setItem("users", JSON.stringify(users));
+}
+
+function getCurrentUser() {
+  const obj = JSON.parse(localStorage.getItem("loggedInUser"));
+  if (obj && obj.email) return obj;
+  const id = localStorage.getItem("loggedInUserId");
+  const users = getUsers();
+  return users.find(u => u.email === id) || null;
+}
+
+addNotification(
+  recipientEmail,
+  "message",
+  "New Message",
+  `You received a message from ${senderName}.`
+);
+
+
+// Ensure user logged in
+if (!getCurrentUser()) {
+  window.location.href = "login_signup.html";
+}
+
+// --- UI Elements ---
+const chatList = document.getElementById("chatList");
+const chatMessages = document.getElementById("chatMessages");
+const chatHeader = document.getElementById("chatHeader");
+const messageInput = document.getElementById("messageInput");
+const sendBtn = document.getElementById("sendBtn");
+
+let currentChatPartner = null;
+
+// --- Load pending chat (from profile or itemdetails) ---
+const pendingChat = localStorage.getItem("openChatWith");
+if (pendingChat) {
+  openChat(pendingChat);
+  localStorage.removeItem("openChatWith");
+}
+
+// --- Load Chat List ---
+function loadChatList() {
+  const user = getCurrentUser();
+  if (!user) return;
+  chatList.innerHTML = "";
+
+  const convos = user.messages || [];
+  if (convos.length === 0) {
+    chatList.innerHTML = "<li>No conversations yet.</li>";
+    return;
+  }
+
+  convos.forEach(conv => {
+    const li = document.createElement("li");
+    const lastMsg = conv.chat?.at(-1);
+    li.innerHTML = `
+      <strong>${conv.with}</strong><br>
+      <small>${lastMsg ? lastMsg.text.slice(0, 30) : "No messages"}</small>
+    `;
+    li.addEventListener("click", () => openChat(conv.with));
+    chatList.appendChild(li);
+  });
+}
+
+// --- Open Chat ---
+function openChat(partnerEmail) {
+  const user = getCurrentUser();
+  if (!user) return;
+
+  currentChatPartner = partnerEmail;
+  chatHeader.textContent = `Chat with ${partnerEmail}`;
+  messageInput.disabled = false;
+  sendBtn.disabled = false;
+  renderMessages();
+}
+
+// --- Render Messages ---
+function renderMessages() {
+  const user = getCurrentUser();
+  if (!user || !currentChatPartner) return;
+
+  const conv = (user.messages || []).find(c => c.with === currentChatPartner);
+  chatMessages.innerHTML = "";
+
+  if (!conv || !conv.chat.length) {
+    chatMessages.innerHTML = "<p>No messages yet.</p>";
+    return;
+  }
+
+  conv.chat.forEach(msg => {
+    const div = document.createElement("div");
+    div.classList.add("message", msg.from === user.email ? "sent" : "received");
+    div.innerHTML = `
+      <span>${msg.text}</span>
+      <small style="display:block;opacity:0.6;font-size:11px;margin-top:3px;">
+        ${msg.time || ""}
+      </small>
+    `;
+    chatMessages.appendChild(div);
+  });
+
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+// --- Send Message ---
+sendBtn.addEventListener("click", sendMessage);
+messageInput.addEventListener("keypress", e => {
+  if (e.key === "Enter") sendMessage();
+});
+
+function sendMessage() {
+  const text = messageInput.value.trim();
+  if (!text || !currentChatPartner) return;
+
+  const users = getUsers();
+  const sender = getCurrentUser();
+  const receiver = users.find(u => u.email === currentChatPartner);
+  if (!receiver) {
+    alert("User not found!");
+    return;
+  }
+
+  const timestamp = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  const msg = { from: sender.email, text, time: timestamp };
+
+  // Update sender messages
+  sender.messages = sender.messages || [];
+  let senderConv = sender.messages.find(c => c.with === receiver.email);
+  if (!senderConv) {
+    senderConv = { with: receiver.email, chat: [] };
+    sender.messages.push(senderConv);
+  }
+  senderConv.chat.push(msg);
+
+  // Update receiver messages
+  receiver.messages = receiver.messages || [];
+  let receiverConv = receiver.messages.find(c => c.with === sender.email);
+  if (!receiverConv) {
+    receiverConv = { with: sender.email, chat: [] };
+    receiver.messages.push(receiverConv);
+  }
+  receiverConv.chat.push(msg);
+
+  // Save updates
+  const updatedUsers = users.map(u =>
+    u.email === sender.email ? sender : u.email === receiver.email ? receiver : u
+  );
+  saveUsers(updatedUsers);
+  localStorage.setItem("loggedInUser", JSON.stringify(sender));
+
+  messageInput.value = "";
+  renderMessages();
+  loadChatList();
+}
+
+// --- Auto-load Chat List ---
+loadChatList();

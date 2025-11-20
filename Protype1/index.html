@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>University Marketplace</title>
+  <link rel="stylesheet" href="styles.css">
+
+  <style>
+    /* --- Layout --- */
+    .main-content {
+      display: flex;
+      gap: 20px;
+      padding: 20px;
+    }
+
+    .sidebar {
+      width: 260px;
+      background: #f9f9f9;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+      position: sticky;
+      top: 80px;
+      height: fit-content;
+    }
+
+    .sidebar h3 {
+      margin-bottom: 15px;
+      color: #333;
+    }
+
+    .filter-section {
+      margin-bottom: 20px;
+    }
+
+    .filter-section h4 {
+      margin-bottom: 8px;
+      font-size: 15px;
+      color: #444;
+    }
+
+    .filter-section input,
+    .filter-section select {
+      width: 100%;
+      padding: 8px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 14px;
+    }
+
+    .price-inputs {
+      display: flex;
+      gap: 10px;
+    }
+
+    .sidebar button {
+      width: 100%;
+      padding: 10px;
+      border: none;
+      border-radius: 6px;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    #searchFilters {
+      background: #28a745;
+      margin-bottom: 10px;
+    }
+
+    #searchFilters:hover {
+      background: #218838;
+    }
+
+    #resetFilters {
+      background: #007bff;
+    }
+
+    #resetFilters:hover {
+      background: #0056b3;
+    }
+
+    /* === Marketplace Grid === */
+    .marketplace-wrapper {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #resultCount {
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 15px;
+    }
+
+    .items-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 20px;
+    }
+
+    .item-card {
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      overflow: hidden;
+      transition: transform 0.2s;
+      cursor: pointer;
+    }
+
+    .item-card:hover {
+      transform: translateY(-5px);
+    }
+
+    .item-card img {
+      width: 100%;
+      height: 160px;
+      object-fit: cover;
+    }
+
+    .item-details {
+      padding: 10px;
+    }
+
+    /* --- Smart Dropdown --- */
+    .dropdown-container {
+      position: relative;
+    }
+
+    .dropdown-container input {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+
+    .dropdown-list {
+      position: absolute;
+      top: 105%;
+      left: 0;
+      right: 0;
+      background: white;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      max-height: 200px;
+      overflow-y: auto;
+      z-index: 10;
+      display: none;
+    }
+
+    .dropdown-list li {
+      padding: 8px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .dropdown-list li:hover {
+      background-color: #e8f0ff;
+    }
+
+    /* --- Search Input --- */
+    .search-container {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-left: 20px;
+    }
+
+    .search-input {
+      padding: 6px 12px;
+      border-radius: 20px;
+      border: 1px solid #ccc;
+      font-size: 14px;
+      width: 250px;
+    }
+
+    .search-btn {
+      background: #007bff;
+      border: none;
+      color: white;
+      padding: 6px 12px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background 0.2s;
+    }
+
+    .search-btn:hover {
+      background: #005ecb;
+    }
+
+    mark {
+      background-color: #ffec99;
+      padding: 0 2px;
+      border-radius: 3px;
+    }
+  </style>
+</head>
+
+<body>
+
+<header class="top-bar">
+  <div class="logo-title">🏫 University Marketplace</div>
+
+  <nav class="nav-bubbles">
+    <a href="messages.html" class="nav-bubble">💬 Messages</a>
+    <a href="index.html" class="nav-bubble active">🛒 Marketplace</a>
+    <a href="seller-dashboard.html" class="nav-bubble">📋 My Listings</a>
+    <a href="postitem.html" class="nav-bubble">➕ Sell Item</a>
+  </nav>
+
+  <div class="search-container">
+    <input type="text" id="searchBar" class="search-input" placeholder="Search Marketplace...">
+    <button id="searchBtn" class="search-btn">🔍</button>
+  </div>
+
+  <div class="top-right">
+    <a href="notifications.html" class="icon-bubble">🔔 Notifications</a>
+    <a href="profile.html" class="icon-bubble">👤 Profile</a>
+  </div>
+</header>
+
+<div class="main-content">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <h3>Filters</h3>
+
+    <!-- Category Smart Dropdown -->
+    <div class="filter-section">
+      <h4>Category</h4>
+      <div class="dropdown-container">
+        <input type="text" id="categorySearch" placeholder="Type or select category..." autocomplete="off">
+        <ul id="categoryList" class="dropdown-list"></ul>
+      </div>
+    </div>
+
+    <!-- Price Filter -->
+    <div class="filter-section">
+      <h4>Price Range ($)</h4>
+      <div class="price-inputs">
+        <input type="number" id="minPrice" placeholder="Min">
+        <input type="number" id="maxPrice" placeholder="Max">
+      </div>
+    </div>
+
+    <!-- Building / Dorm -->
+    <div class="filter-section">
+      <h4>Building / Dorm</h4>
+      <select id="buildingFilter">
+        <option value="">All</option>
+        <option>Current Orlando</option>
+        <option>Arden Villas</option>
+        <option>The Aves</option>
+        <option>The Quads</option>
+        <option>The Accolade</option>
+        <option>The Village</option>
+        <option>The Point</option>
+        <option>Nike Hall</option>
+        <option>Knights Plaza</option>
+        <option>Hercules</option>
+        <option>Neptune</option>
+        <option>Towers</option>
+      </select>
+    </div>
+
+    <!-- Rating -->
+    <div class="filter-section">
+      <h4>Seller Rating</h4>
+      <select id="ratingFilter">
+        <option value="">All</option>
+        <option value="4">4★ & up</option>
+        <option value="3">3★ & up</option>
+        <option value="2">2★ & up</option>
+      </select>
+    </div>
+
+    <!-- Buttons -->
+    <button id="searchFilters">Search</button>
+    <button id="resetFilters">Reset Filters</button>
+  </aside>
+
+  <!-- Marketplace Wrapper -->
+  <div class="marketplace-wrapper">
+    <div id="resultCount"></div>
+    <div class="items-grid" id="marketplaceGrid"></div>
+  </div>
+</div>
+
+  
+
+<script>
+/* === Smart Category Dropdown === */
+const categories = [
+  "Electronics","Books & Study","Furniture","Clothing & Accessories",
+  "Dorm & Home Essentials","Entertainment & Hobbies","Transportation",
+  "Tools & Hardware","Beauty & Personal Care","Sports & Outdoors",
+  "Appliances","Campus & Travel","Pets & Plants","Other"
+];
+
+const categorySearch = document.getElementById("categorySearch");
+const categoryList = document.getElementById("categoryList");
+let selectedCategory = "";
+
+function showCategoryList(filtered = categories) {
+  categoryList.innerHTML = "";
+  filtered.forEach(cat => {
+    const li = document.createElement("li");
+    li.textContent = cat;
+    li.addEventListener("click", () => {
+      categorySearch.value = cat;
+      selectedCategory = cat;
+      categoryList.style.display = "none";
+    });
+    categoryList.appendChild(li);
+  });
+  categoryList.style.display = filtered.length ? "block" : "none";
+}
+
+categorySearch.addEventListener("input", () => {
+  const query = categorySearch.value.toLowerCase();
+  const filtered = categories.filter(cat => cat.toLowerCase().includes(query));
+  showCategoryList(filtered);
+});
+
+categorySearch.addEventListener("focus", () => showCategoryList(categories));
+document.addEventListener("click", e => {
+  if (!e.target.closest(".dropdown-container")) categoryList.style.display = "none";
+});
+
+/* === Smart Search Function === */
+function similarMatch(text, query) {
+  if (!text || !query) return false;
+  text = text.toLowerCase();
+  query = query.toLowerCase();
+  if (text.includes(query)) return true;
+  let diffs = 0;
+  for (let i = 0; i < Math.min(text.length, query.length); i++) {
+    if (text[i] !== query[i]) diffs++;
+    if (diffs > 1) return false;
+  }
+  return true;
+}
+
+/* === Marketplace Filter Logic === */
+function loadMarketplace() {
+  const grid = document.getElementById("marketplaceGrid");
+  const resultCount = document.getElementById("resultCount");
+  const items = JSON.parse(localStorage.getItem("marketplaceItems")) || [];
+  const currentUser = JSON.parse(localStorage.getItem("loggedInUser")) || { email: localStorage.getItem("loggedInUserId") };
+
+  const searchQuery = document.getElementById("searchBar").value.trim().toLowerCase();
+  const minPrice = parseFloat(document.getElementById("minPrice").value) || 0;
+  const maxPrice = parseFloat(document.getElementById("maxPrice").value) || Infinity;
+  const building = document.getElementById("buildingFilter").value;
+  const rating = parseInt(document.getElementById("ratingFilter").value) || 0;
+
+  grid.innerHTML = "";
+
+  const filtered = items.filter(item => {
+    if (item.sellerEmail === currentUser.email || item.sold) return false;
+
+    const title = item.title?.toLowerCase() || "";
+    const desc = item.description?.toLowerCase() || "";
+    const cat = item.category?.toLowerCase() || "";
+
+    const matchesSearch = !searchQuery ||
+      similarMatch(title, searchQuery) ||
+      similarMatch(desc, searchQuery) ||
+      similarMatch(cat, searchQuery);
+
+    const matchesCategory = !selectedCategory || cat === selectedCategory.toLowerCase();
+    const price = parseFloat(item.price) || 0;
+    const matchesPrice = price >= minPrice && price <= maxPrice;
+    const matchesBuilding = !building || (item.building && item.building === building);
+    const matchesRating = !rating || (item.rating && item.rating >= rating);
+
+    return matchesSearch && matchesCategory && matchesPrice && matchesBuilding && matchesRating;
+  });
+
+  resultCount.textContent = `${filtered.length} item${filtered.length !== 1 ? "s" : ""} found`;
+
+  if (filtered.length === 0) {
+    grid.innerHTML = "<p>No items found with selected filters.</p>";
+    return;
+  }
+
+  const highlight = (text, query) => {
+    if (!query) return text;
+    const regex = new RegExp(`(${query})`, "ig");
+    return text.replace(regex, "<mark>$1</mark>");
+  };
+
+  filtered.forEach(item => {
+    const card = document.createElement("div");
+    card.classList.add("item-card");
+    const img = (item.images && item.images[0]) || "https://via.placeholder.com/250x160";
+    const highlightedTitle = highlight(item.title, searchQuery);
+    card.innerHTML = `
+      <img src="${img}" alt="${item.title}">
+      <div class="item-details">
+        <strong>${highlightedTitle}</strong>
+        <p>$${item.price} • ${item.building || item.address || "N/A"}</p>
+      </div>
+    `;
+    card.addEventListener("click", () => {
+      localStorage.setItem("selectedItemId", item.id);
+      window.location.href = "itemdetails.html";
+    });
+    grid.appendChild(card);
+  });
+}
+
+/* === Event Listeners === */
+document.getElementById("searchBtn").addEventListener("click", loadMarketplace);
+document.getElementById("searchBar").addEventListener("keypress", e => {
+  if (e.key === "Enter") loadMarketplace();
+});
+document.getElementById("searchFilters").addEventListener("click", loadMarketplace);
+document.getElementById("resetFilters").addEventListener("click", () => {
+  document.getElementById("searchBar").value = "";
+  document.getElementById("minPrice").value = "";
+  document.getElementById("maxPrice").value = "";
+  document.getElementById("buildingFilter").value = "";
+  document.getElementById("ratingFilter").value = "";
+  categorySearch.value = "";
+  selectedCategory = "";
+  loadMarketplace();
+});
+
+loadMarketplace();
+</script>
+
+</body>
+</html>

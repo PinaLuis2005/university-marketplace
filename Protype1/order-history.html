@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Order History</title>
+  <link rel="stylesheet" href="order-history.css">
+</head>
+<body>
+  <script>
+  if (!localStorage.getItem("loggedInUser")) {
+    // Save the page the user tried to access
+    localStorage.setItem("redirectAfterLogin", window.location.href);
+    // Send them to login page
+    window.location.href = "login_signup.html";
+  }
+</script>
+
+
+  <!-- Top Navigation Bar -->
+  <div class="top-bar">
+    <div class="site-title">University Marketplace</div>
+    <div class="nav-icons">
+      <a href="index.html" title="Home">🏠</a>
+      <a href="saved.html" title="Saved">❤️</a>
+      <a href="post.html" title="Post Item">➕</a>
+      <a href="messages.html" title="Messages">💬</a>
+      <a href="profile.html" title="Profile">👤</a>
+      <a href="order-history.html" title="Orders">📦</a>
+    </div>
+  </div>
+
+  <div class="bubble-container">
+    <h1>📦 Order History</h1>
+
+    <div class="orders-list">
+
+      <div class="order-card">
+        <div class="order-header">
+          <strong>Order #12345</strong>
+          <span class="order-date">Sep 12, 2025</span>
+          <span class="order-status status-delivered">Delivered</span>
+        </div>
+        <div class="order-body">
+          <img src="https://via.placeholder.com/100x100" alt="Item Image">
+          <div class="order-info">
+            <p><strong>Mini Fridge</strong></p>
+            <p>Quantity: 1</p>
+          </div>
+          <div class="order-total">
+            <p>Total: <strong>$75</strong></p>
+          </div>
+        </div>
+        <div class="order-actions">
+          <button class="view-details">View Details</button>
+        </div>
+      </div>
+
+      <div class="order-card">
+        <div class="order-header">
+          <strong>Order #12344</strong>
+          <span class="order-date">Aug 30, 2025</span>
+          <span class="order-status status-shipped">Shipped</span>
+        </div>
+        <div class="order-body">
+          <img src="https://via.placeholder.com/100x100" alt="Item Image">
+          <div class="order-info">
+            <p><strong>Desk Lamp</strong></p>
+            <p>Quantity: 2</p>
+          </div>
+          <div class="order-total">
+            <p>Total: <strong>$40</strong></p>
+          </div>
+        </div>
+        <div class="order-actions">
+          <button class="view-details">View Details</button>
+        </div>
+      </div>
+
+      <!-- More order-card blocks here -->
+
+    </div>
+  </div>
+
+</body>
+</html>

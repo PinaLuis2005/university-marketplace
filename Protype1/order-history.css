@@ -1,0 +1,145 @@
+body {
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif;
+  background-color: #f2f3f5;
+}
+
+/* Top Nav Bar */
+.top-bar {
+  background-color: #ffffff;
+  border-bottom: 1px solid #ddd;
+  padding: 14px 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.site-title {
+  font-size: 1.3em;
+  font-weight: bold;
+  color: #333;
+}
+
+.nav-icons a {
+  margin-left: 20px;
+  text-decoration: none;
+  font-size: 1.4em;
+  color: #333;
+}
+
+.nav-icons a:hover {
+  color: #007bff;
+}
+
+/* Main bubble container for orders */
+.bubble-container {
+  max-width: 900px;
+  margin: 40px auto;
+  padding: 30px;
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.bubble-container h1 {
+  font-size: 24px;
+  margin-bottom: 25px;
+  color: #222;
+}
+
+.orders-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Each order card */
+.order-card {
+  background-color: #fafafa;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.order-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.order-date {
+  color: #666;
+  font-size: 0.9em;
+}
+
+.order-status {
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.9em;
+  font-weight: bold;
+}
+
+.status-delivered {
+  background-color: #e6ffed;
+  color: #27ae60;
+}
+
+.status-shipped {
+  background-color: #ebf5fb;
+  color: #3498db;
+}
+
+.status-processing {
+  background-color: #fff4e6;
+  color: #f39c12;
+}
+
+.status-cancelled {
+  background-color: #f8d7da;
+  color: #c0392b;
+}
+
+.order-body {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+}
+
+.order-body img {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.order-info {
+  flex: 1;
+}
+
+.order-total {
+  font-size: 1em;
+  color: #333;
+}
+
+.order-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.view-details {
+  padding: 8px 16px;
+  font-size: 0.9em;
+  border: none;
+  border-radius: 6px;
+  background-color: #007bff;
+  color: white;
+  cursor: pointer;
+}
+
+.view-details:hover {
+  background-color: #0056b3;
+}

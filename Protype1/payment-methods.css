@@ -1,0 +1,175 @@
+body {
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif;
+  background-color: #f2f3f5;
+}
+
+/* --- Top Bar --- */
+.top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  background-color: #ffffff;
+  border-bottom: 1px solid #ddd;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Logo / Title */
+.logo-title {
+  font-size: 20px;
+  font-weight: bold;
+}
+
+/* Nav Bubbles */
+.nav-bubbles {
+  display: flex;
+  gap: 15px;
+}
+
+.nav-bubble {
+  padding: 6px 14px;
+  background-color: #e6f0ff;
+  border-radius: 20px;
+  text-decoration: none;
+  color: #333;
+  font-size: 14px;
+  border: 1px solid #bbb;
+  transition: background-color 0.2s, border-color 0.2s;
+}
+
+.nav-bubble:hover {
+  background-color: #dce9ff;
+  border-color: #007bff;
+}
+
+/* Bubble container */
+.payment-bubble {
+  max-width: 800px;
+  margin: 40px auto;
+  padding: 30px;
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+/* Top Right Section */
+.top-right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.icon-bubble {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 1px solid #bbb;
+  border-radius: 20px;
+  background-color: #f0f4ff;
+  color: #333;
+  text-decoration: none;
+  font-size: 14px;
+  transition: background-color 0.2s;
+}
+
+.icon-bubble:hover {
+  background-color: #e0e8ff;
+}
+
+.payment-bubble h1 {
+  font-size: 24px;
+  margin-bottom: 30px;
+  color: #222;
+}
+
+/* Form fields */
+.form-section label {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 6px;
+  font-size: 14px;
+}
+
+.form-section input,
+.form-section select {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 20px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.row {
+  display: flex;
+  gap: 20px;
+}
+
+.col {
+  flex: 1;
+}
+
+/* Save button */
+.save-btn {
+  background-color: #007bff;
+  color: white;
+  padding: 12px;
+  width: 100%;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.save-btn:hover {
+  background-color: #0056b3;
+}
+
+/* Existing methods section */
+.existing-methods {
+  margin-top: 40px;
+}
+
+.existing-methods h2 {
+  font-size: 20px;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+.method-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #fafafa;
+  padding: 15px 20px;
+  border-radius: 8px;
+  margin-bottom: 15px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.method-info strong {
+  font-size: 16px;
+  color: #000;
+}
+
+.method-info span {
+  font-size: 14px;
+  color: #555;
+  margin-left: 10px;
+}
+
+.delete-method {
+  background-color: #ff4d4d;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.delete-method:hover {
+  background-color: #e84242;
+}

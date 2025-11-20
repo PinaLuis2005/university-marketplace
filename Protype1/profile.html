@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>User Profile</title>
+  <link rel="stylesheet" href="profile.css">
+  <style>
+    .sold-overlay {
+      position: absolute;
+      top: 10px;
+      left: -40px;
+      background: #ff4d4f;
+      color: #fff;
+      font-weight: 700;
+      padding: 5px 50px;
+      transform: rotate(-45deg);
+      pointer-events: none;
+      box-shadow: 0 2px 6px rgba(0,0,0,.25);
+    }
+    .listing-card {
+      position: relative;
+      cursor: pointer;
+    }
+
+    /* --- Stars --- */
+    .stars {
+      display: inline-flex;
+      cursor: pointer;
+      gap: 3px;
+      margin-left: 8px;
+    }
+    .star {
+      font-size: 20px;
+      color: #ccc;
+      transition: color 0.2s;
+    }
+    .star.hover,
+    .star.selected {
+      color: #FFD700;
+    }
+
+    .review-section {
+      margin: 30px auto;
+      padding: 20px;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      max-width: 500px;
+    }
+    .review-section textarea {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    .review-section button {
+      background: #007bff;
+      border: none;
+      color: white;
+      padding: 10px 15px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .review-section button:hover {
+      background: #005ecb;
+    }
+  </style>
+</head>
+<body>
+
+<header class="top-bar">
+  <div class="logo-title">🏫 University Marketplace</div>
+  <nav class="nav-bubbles">
+    <a href="messages.html" class="nav-bubble">💬 Messages</a>
+    <a href="index.html" class="nav-bubble">🛒 Marketplace</a>
+    <a href="seller-dashboard.html" class="nav-bubble">📋 My Listings</a>
+    <a href="postitem.html" class="nav-bubble">➕ Sell Item</a>
+  </nav>
+  <div class="top-right">
+    <a href="notifications.html" class="icon-bubble">🔔 Notifications</a>
+    <a href="profile.html" class="icon-bubble active">👤 Profile</a>
+    <a href="settings.html" class="icon-bubble">⚙️ Settings</a>
+  </div>
+</header>
+
+<div class="profile-container">
+  <div class="cover-photo" id="coverPhoto"></div>
+  <div class="profile-pic" id="profilePic"></div>
+
+  <div class="user-info">
+    <h2 id="userName"></h2>
+    <div class="badge-major-stats">
+      <span class="badge">🎓 Student</span>
+      <span class="major" id="userMajor"></span>
+      <div class="stars" id="starsContainer">
+        <span class="star" data-value="1">★</span>
+        <span class="star" data-value="2">★</span>
+        <span class="star" data-value="3">★</span>
+        <span class="star" data-value="4">★</span>
+        <span class="star" data-value="5">★</span>
+      </div>
+      <span id="userRatingText">(0.0)</span>
+      <span class="items-sold">📦 <span id="itemsSold">0</span> items sold</span>
+    </div>
+    <p class="bio" id="userBio"></p>
+    <div class="action-buttons" id="profileActions"></div>
+  </div>
+
+  <div class="listings-section">
+    <h3 id="listingHeader">Listings</h3>
+    <div class="listings-grid" id="userListings"></div>
+  </div>
+</div>
+
+<div class="review-section" id="reviewSection" style="display:none;">
+  <h3>Leave a Review</h3>
+  <textarea id="reviewComment" rows="3" placeholder="Write a short comment (optional)"></textarea>
+  <button id="submitReview">Submit Review</button>
+</div>
+
+<script src="notificationsHelper.js"></script>
+<script>
+  /* === Helpers === */
+  const getUsers = () => JSON.parse(localStorage.getItem("users")) || [];
+  const saveUsers = users => localStorage.setItem("users", JSON.stringify(users));
+
+  const getCurrentUser = () => {
+    const obj = JSON.parse(localStorage.getItem("loggedInUser"));
+    if (obj && obj.email) return obj;
+    const id = localStorage.getItem("loggedInUserId");
+    if (!id) return null;
+    return getUsers().find(u => u.email === id) || null;
+  };
+
+  const getUserByEmail = email => getUsers().find(u => u.email === email) || null;
+
+  const imgSrcFrom = item =>
+    (item.images && item.images[0]) || item.image || "https://via.placeholder.com/200";
+
+  /* === Load Profile === */
+  function loadProfile() {
+    const loggedUser = getCurrentUser();
+    const selectedSellerId = localStorage.getItem("selectedSellerId");
+
+    if (!loggedUser) {
+      localStorage.setItem("redirectAfterLogin", "profile.html");
+      window.location.href = "login_signup.html";
+      return;
+    }
+
+    let userToShow;
+    if (selectedSellerId && selectedSellerId !== loggedUser.email) {
+      userToShow = getUserByEmail(selectedSellerId) || {
+        email: selectedSellerId,
+        totalRatings: 0,
+        numRatings: 0
+      };
+    } else {
+      userToShow = loggedUser;
+    }
+
+    document.getElementById("userName").textContent = userToShow.name || "Unknown User";
+    document.getElementById("userMajor").textContent = userToShow.major || "No major set";
+    document.getElementById("userBio").textContent = userToShow.bio || "No bio yet.";
+
+    const avg = userToShow.numRatings
+      ? (userToShow.totalRatings / userToShow.numRatings).toFixed(1)
+      : "0.0";
+    document.getElementById("userRatingText").textContent = `(${avg})`;
+
+    document.getElementById("profilePic").style.backgroundImage = `url('${
+      userToShow.profilePic || "https://via.placeholder.com/150"
+    }')`;
+    if (userToShow.coverPhoto)
+      document.getElementById("coverPhoto").style.backgroundImage = `url(${userToShow.coverPhoto})`;
+
+    const items = JSON.parse(localStorage.getItem("marketplaceItems")) || [];
+    const listings = items.filter(i => i.sellerEmail === userToShow.email);
+    document.getElementById("itemsSold").textContent = listings.filter(i => i.sold).length;
+
+    const grid = document.getElementById("userListings");
+    grid.innerHTML =
+      listings.length === 0
+        ? "<p>No listings yet.</p>"
+        : listings
+            .map(
+              item => `
+        <div class="listing-card" onclick="viewItem(${item.id})">
+          ${item.sold ? '<div class="sold-overlay">SOLD</div>' : ""}
+          <img src="${imgSrcFrom(item)}" alt="${item.title}">
+          <h4>${item.title}</h4>
+          <p>$${item.price}</p>
+        </div>`
+            )
+            .join("");
+
+    const actions = document.getElementById("profileActions");
+    const header = document.getElementById("listingHeader");
+    const reviewSection = document.getElementById("reviewSection");
+
+    if (userToShow.email === loggedUser.email) {
+      header.textContent = "Your Listings";
+      actions.innerHTML = "";
+      reviewSection.style.display = "none";
+    } else {
+      header.textContent = `${userToShow.name || "User"}'s Listings`;
+      actions.innerHTML = `
+        <button class="follow-btn">➕ Follow</button>
+        <button class="message-btn" onclick="messageSeller('${userToShow.email}')">💬 Message Seller</button>
+      `;
+      reviewSection.style.display = "block";
+    }
+
+    setupStars(userToShow, loggedUser);
+  }
+
+  /* === Stars Setup === */
+  function setupStars(userToShow, loggedUser) {
+    const starsContainer = document.getElementById("starsContainer");
+    const allStars = starsContainer.querySelectorAll(".star");
+
+    // Fill current average
+    const avg = userToShow.numRatings
+      ? (userToShow.totalRatings / userToShow.numRatings).toFixed(1)
+      : 0;
+    allStars.forEach(s => s.classList.remove("selected"));
+    for (let i = 0; i < Math.round(avg); i++) allStars[i].classList.add("selected");
+
+    // Hover
+    allStars.forEach(star => {
+      star.addEventListener("mouseover", () => {
+        allStars.forEach(s => s.classList.remove("hover"));
+        for (let i = 0; i < star.dataset.value; i++) allStars[i].classList.add("hover");
+      });
+      star.addEventListener("mouseleave", () =>
+        allStars.forEach(s => s.classList.remove("hover"))
+      );
+
+      // CLICK (main logic)
+      star.addEventListener("click", () => {
+        if (!loggedUser || !userToShow.email) return;
+        if (userToShow.email === loggedUser.email) {
+          alert("You can't rate yourself!");
+          return;
+        }
+
+        const rating = parseInt(star.dataset.value);
+        const users = getUsers();
+        const index = users.findIndex(u => u.email === userToShow.email);
+        if (index === -1) return;
+
+        users[index].totalRatings = (users[index].totalRatings || 0) + rating;
+        users[index].numRatings = (users[index].numRatings || 0) + 1;
+        saveUsers(users);
+
+        const avg = (users[index].totalRatings / users[index].numRatings).toFixed(1);
+        document.getElementById("userRatingText").textContent = `(${avg})`;
+
+        allStars.forEach(s => s.classList.remove("selected"));
+        for (let i = 0; i < Math.round(avg); i++) allStars[i].classList.add("selected");
+
+        addNotification(
+          userToShow.email,
+          "review",
+          "New Rating Received",
+          `${loggedUser.name || loggedUser.email} rated you ${rating}★`
+        );
+
+        alert(`✅ You rated this seller ${rating} stars!`);
+      });
+    });
+  }
+
+  function messageSeller(email) {
+    localStorage.setItem("openChatWith", email);
+    window.location.href = "messages.html";
+  }
+
+  function viewItem(id) {
+    localStorage.setItem("selectedItemId", id);
+    window.location.href = "itemdetails.html";
+  }
+
+  loadProfile();
+
+  document.getElementById("submitReview")?.addEventListener("click", () => {
+    const reviewer = JSON.parse(localStorage.getItem("loggedInUser"));
+    const viewedUser = localStorage.getItem("selectedSellerId");
+    const comment = document.getElementById("reviewComment").value.trim();
+
+    if (!viewedUser) return alert("No user selected for review.");
+
+    addNotification(
+      viewedUser,
+      "review",
+      "New Review Received",
+      `${reviewer.name || reviewer.email} left you a review: "${
+        comment || "No comment provided."
+      }"`
+    );
+
+    alert("✅ Review submitted and notification sent!");
+    document.getElementById("reviewComment").value = "";
+  });
+</script>
+</body>
+</html>

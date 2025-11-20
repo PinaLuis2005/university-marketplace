@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Notifications</title>
+  <link rel="stylesheet" href="notifications.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+      margin: 0;
+      padding: 0;
+    }
+
+    .notifications-bubble {
+      max-width: 700px;
+      margin: 50px auto;
+      background: white;
+      padding: 20px 30px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .notifications-bubble h1 {
+      margin-bottom: 20px;
+      color: #333;
+    }
+
+    .notifications-list {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .notification {
+      display: flex;
+      align-items: flex-start;
+      gap: 15px;
+      padding: 12px 15px;
+      border: 1px solid #eee;
+      border-radius: 8px;
+      background: #fff;
+      transition: background-color 0.2s;
+    }
+
+    .notification.unread {
+      background: #e9f3ff;
+    }
+
+    .notification:hover {
+      background: #f8f8f8;
+    }
+
+    .notification .icon {
+      font-size: 25px;
+    }
+
+    .notification .text {
+      flex: 1;
+    }
+
+    .notification strong {
+      display: block;
+      margin-bottom: 4px;
+      color: #333;
+    }
+
+    .notification p {
+      margin: 0;
+      color: #555;
+    }
+
+    .notification .time {
+      font-size: 12px;
+      color: #888;
+      margin-top: 5px;
+      display: block;
+    }
+
+    .mark-read {
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 4px 8px;
+      cursor: pointer;
+      font-size: 12px;
+      align-self: center;
+    }
+
+    .mark-read:hover {
+      background: #005ecb;
+    }
+  </style>
+</head>
+<body>
+<script>
+  // Redirect to login if not authenticated
+  if (!localStorage.getItem("loggedInUserId")) {
+    localStorage.setItem("redirectAfterLogin", window.location.href);
+    window.location.href = "login_signup.html";
+  }
+</script>
+
+<header class="top-bar">
+  <div class="logo-title">🏫 University Marketplace</div>
+
+  <nav class="nav-bubbles">
+    <a href="messages.html" class="nav-bubble">💬 Messages</a>
+    <a href="index.html" class="nav-bubble">🛒 Marketplace</a>
+    <a href="seller-dashboard.html" class="nav-bubble">📋 My Listings</a>
+    <a href="postitem.html" class="nav-bubble">➕ Sell Item</a>
+  </nav>
+
+  <div class="top-right">
+    <a href="notifications.html" class="icon-bubble active">🔔 Notifications</a>
+    <a href="profile.html" class="icon-bubble">👤 Profile</a>
+  </div>
+</header>
+
+<div class="notifications-bubble">
+  <h1>🔔 Notifications</h1>
+  <div class="notifications-list" id="notificationsList">
+    <p>Loading your notifications...</p>
+  </div>
+</div>
+
+<script>
+function getCurrentUser() {
+  const logged = JSON.parse(localStorage.getItem("loggedInUser"));
+  return logged || { email: localStorage.getItem("loggedInUserId") };
+}
+
+// Load notifications dynamically
+function loadNotifications() {
+  const user = getCurrentUser();
+  const all = JSON.parse(localStorage.getItem("notifications")) || [];
+  const myNotifications = all.filter(n => n.userEmail === user.email);
+  const list = document.getElementById("notificationsList");
+
+  list.innerHTML = "";
+
+  if (myNotifications.length === 0) {
+    list.innerHTML = "<p>No notifications yet.</p>";
+    return;
+  }
+
+  myNotifications
+    .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+    .forEach(n => {
+      const div = document.createElement("div");
+      div.className = `notification ${!n.read ? "unread" : ""}`;
+      const icon = n.type === "message" ? "💬" :
+                   n.type === "sale" ? "🛒" :
+                   n.type === "review" ? "⭐" : "🔔";
+
+      div.innerHTML = `
+        <div class="icon">${icon}</div>
+        <div class="text">
+          <strong>${n.title}</strong>
+          <p>${n.details}</p>
+          <span class="time">${new Date(n.timestamp).toLocaleString()}</span>
+        </div>
+        ${!n.read ? '<button class="mark-read">Mark as read</button>' : ""}
+      `;
+
+      const btn = div.querySelector(".mark-read");
+      if (btn) {
+        btn.addEventListener("click", () => {
+          n.read = true;
+          localStorage.setItem("notifications", JSON.stringify(all));
+          loadNotifications();
+        });
+      }
+
+      list.appendChild(div);
+    });
+}
+
+// Demo notifications (for testing)
+if (!localStorage.getItem("notifications")) {
+  const sample = [
+    {
+      id: 1,
+      userEmail: "test@ucf.edu",
+      type: "message",
+      title: "New Message from Alex",
+      details: "Alex sent you a message about 'Desk Lamp'.",
+      timestamp: new Date().toISOString(),
+      read: false
+    },
+    {
+      id: 2,
+      userEmail: "test@ucf.edu",
+      type: "sale",
+      title: "Item Sold!",
+      details: "Your listing 'Mini Fridge' has been sold.",
+      timestamp: new Date().toISOString(),
+      read: true
+    },
+    {
+      id: 3,
+      userEmail: "test@ucf.edu",
+      type: "review",
+      title: "New Review",
+      details: "You received a 5-star review for 'Bookshelf'.",
+      timestamp: new Date().toISOString(),
+      read: false
+    }
+  ];
+  localStorage.setItem("notifications", JSON.stringify(sample));
+}
+
+loadNotifications();
+</script>
+
+</body>
+</html>

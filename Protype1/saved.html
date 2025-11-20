@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Saved Items</title>
+  <link rel="stylesheet" href="saved.css">
+</head>
+<body>
+
+<header class="top-bar">
+  <div class="logo-title">🏫 University Marketplace</div>
+
+  <nav class="nav-bubbles">
+    <a href="messages.html" class="nav-bubble">💬 Messages</a>
+    <a href="index.html" class="nav-bubble">🛒 Marketplace</a>
+    <a href="seller-dashboard.html" class="nav-bubble">📋 My Listings</a>
+    <a href="postitem.html" class="nav-bubble">➕ Sell Item</a>
+  </nav>
+
+  <div class="top-right">
+    <a href="notifications.html" class="icon-bubble">🔔 Notifications</a>
+    <a href="profile.html" class="icon-bubble">👤 Profile</a>
+  </div>
+</header>
+
+<div class="bubble-container">
+  <h1>❤️ Saved Items</h1>
+  <section class="saved-grid" id="savedGrid"></section>
+</div>
+
+<script>
+  function loadSavedItems() {
+    const grid = document.getElementById("savedGrid");
+    const savedIds = JSON.parse(localStorage.getItem("savedItems")) || [];
+    const items = JSON.parse(localStorage.getItem("marketplaceItems")) || [];
+
+    const savedItems = items.filter(item => savedIds.includes(item.id));
+
+    if (savedItems.length === 0) {
+      grid.innerHTML = "<p>You haven’t saved any items yet.</p>";
+      return;
+    }
+
+    grid.innerHTML = "";
+    savedItems.forEach(item => {
+      const card = document.createElement("div");
+      card.classList.add("item-card");
+      card.style.cursor = "pointer";
+
+      card.innerHTML = `
+        ${item.sold ? '<div class="sold-banner">SOLD</div>' : ""}
+        <img src="${(item.images && item.images[0]) || item.image || 'https://via.placeholder.com/250x140'}" alt="Item">
+        <div class="item-details">
+          <strong>${item.title}</strong>
+          <p>$${item.price} • ${item.address || item.zipcode || "N/A"}</p>
+        </div>
+      `;
+
+      card.addEventListener("click", () => {
+        localStorage.setItem("selectedItemId", item.id);
+        window.location.href = "itemdetails.html";
+      });
+
+      grid.appendChild(card);
+    });
+  }
+
+  loadSavedItems();
+</script>
+
+</body>
+</html>

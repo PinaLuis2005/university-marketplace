@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Settings</title>
+  <link rel="stylesheet" href="settings.css" />
+  <link rel="stylesheet" href="https://unpkg.com/cropperjs@1.6.2/dist/cropper.min.css" />
+  <style>
+    #passwordStrength {
+      font-weight: bold;
+      margin-left: 10px;
+    }
+    .weak { color: red; }
+    .medium { color: orange; }
+    .strong { color: green; }
+  </style>
+</head>
+<body>
+
+<script>
+  if (!localStorage.getItem("loggedInUserId")) {
+    localStorage.setItem("redirectAfterLogin", window.location.href);
+    window.location.href = "login_signup.html";
+  }
+</script>
+
+<header class="top-bar">
+  <div class="logo-title">🏫 University Marketplace</div>
+  <nav class="nav-bubbles">
+    <a href="messages.html" class="nav-bubble">💬 Messages</a>
+    <a href="index.html" class="nav-bubble">🛒 Marketplace</a>
+    <a href="seller-dashboard.html" class="nav-bubble">📋 My Listings</a>
+    <a href="postitem.html" class="nav-bubble">➕ Sell Item</a>
+  </nav>
+  <div class="top-right">
+    <a href="profile.html" class="icon-bubble">👤 Profile</a>
+    <a href="settings.html" class="icon-bubble active">⚙️ Settings</a>
+  </div>
+</header>
+
+<div class="settings-bubble">
+  <h1>⚙️ Settings</h1>
+
+  <div class="setting-section">
+    <h2>Account Information</h2>
+
+    <label>Current Email / Phone</label>
+    <input type="text" id="currentEmailPhone" readonly />
+
+    <label>New Email / Phone</label>
+    <input type="text" id="newEmailPhone" />
+
+    <label>Re-enter Current Password</label>
+    <div class="password-wrapper">
+      <input type="password" id="currentPasswordCheck" placeholder="Enter your current password" />
+      <button type="button" class="toggle-btn" onclick="togglePassword('currentPasswordCheck')">👁 Show</button>
+    </div>
+
+    <label>New Password</label>
+    <div class="password-wrapper">
+      <input type="password" id="newPassword" oninput="checkPasswordStrength(this.value)" />
+      <button type="button" class="toggle-btn" onclick="togglePassword('newPassword')">👁 Show</button>
+      <span id="passwordStrength"></span>
+    </div>
+  </div>
+
+  <div class="setting-section">
+    <h2>Profile</h2>
+
+    <label>Update Profile Picture</label>
+    <input type="file" id="profilePic" accept="image/*" />
+    <div class="profile-preview">
+      <img id="profilePreviewImg" alt="Profile Preview" />
+    </div>
+
+    <label>Change Cover Photo</label>
+    <input type="file" id="coverPhoto" accept="image/*" />
+    <div class="cover-preview">
+      <img id="coverPreviewImg" alt="Cover Preview" />
+    </div>
+
+    <label>Bio</label>
+    <textarea id="bio" rows="3" placeholder="Write something about yourself..."></textarea>
+  </div>
+
+  <div class="setting-actions">
+    <button onclick="saveSettings()">💾 Save Changes</button>
+    <button class="clear-saved" onclick="clearSaved()">🧹 Clear Saved Items</button>
+    <button class="delete-account" onclick="deleteAccount()">❌ Delete Account</button>
+  </div>
+
+  <div class="logout-section">
+    <button class="logout-btn" onclick="logoutUser()">🚪 Logout</button>
+  </div>
+</div>
+
+<!-- Cropper Modal -->
+<dialog id="cropDialog" class="crop-dialog">
+  <form method="dialog" class="crop-card" onsubmit="return false;">
+    <header class="crop-card__header">
+      <h3 id="cropTitle">Crop Image</h3>
+    </header>
+    <div class="crop-card__body">
+      <img id="cropperImage" alt="Crop source" />
+    </div>
+    <menu class="crop-card__actions">
+      <button type="button" class="btn" id="btnCancelCrop">✖ Cancel</button>
+      <button type="button" class="btn btn-primary" id="btnSaveCrop">✅ Save</button>
+    </menu>
+  </form>
+</dialog>
+
+<script src="https://unpkg.com/cropperjs@1.6.2/dist/cropper.min.js"></script>
+<script>
+  // ========== Multi-user helpers ==========
+  function getUsers() {
+    return JSON.parse(localStorage.getItem("users")) || [];
+  }
+  function saveUsers(users) {
+    localStorage.setItem("users", JSON.stringify(users));
+  }
+  function getCurrentUser() {
+    const stored = JSON.parse(localStorage.getItem("loggedInUser"));
+    if (stored && stored.email) return stored;
+    const id = localStorage.getItem("loggedInUserId");
+    const users = getUsers();
+    return users.find(u => u.email === id) || null;
+  }
+  function updateUserEverywhere(user) {
+    // sync across all storages
+    const users = getUsers();
+    const idx = users.findIndex(u => u.email === user.email);
+    if (idx !== -1) users[idx] = user;
+    saveUsers(users);
+    localStorage.setItem("loggedInUser", JSON.stringify(user));
+    localStorage.setItem("loggedInUserId", user.email);
+  }
+
+  // ========== Password toggler ==========
+  function togglePassword(id) {
+    const input = document.getElementById(id);
+    input.type = input.type === "password" ? "text" : "password";
+  }
+
+  // ========== Cropper setup ==========
+  let cropper = null, cropTarget = null;
+  const dlg = document.getElementById('cropDialog');
+  const imgEl = document.getElementById('cropperImage');
+  const titleEl = document.getElementById('cropTitle');
+
+  function openCropper(file, target) {
+    cropTarget = target;
+    titleEl.textContent = target === 'profile' ? 'Crop Profile Photo' : 'Crop Cover Photo';
+    const reader = new FileReader();
+    reader.onload = e => {
+      imgEl.src = e.target.result;
+      dlg.showModal();
+      imgEl.onload = () => {
+        if (cropper) cropper.destroy();
+        cropper = new Cropper(imgEl, {
+          aspectRatio: target === 'profile' ? 1 : 16 / 9,
+          viewMode: 1, dragMode: 'move', background: false,
+          autoCropArea: 0.9,
+          ready() {
+            if (target === 'profile') {
+              const box = dlg.querySelector('.cropper-crop-box');
+              const face = dlg.querySelector('.cropper-face');
+              if (box) box.style.borderRadius = '50%';
+              if (face) face.style.borderRadius = '50%';
+            }
+          }
+        });
+      };
+    };
+    reader.readAsDataURL(file);
+  }
+  function closeCropper() { if (cropper) cropper.destroy(); dlg.close(); }
+  function saveCrop() {
+    if (!cropper) return;
+    const size = cropTarget === 'profile' ? 320 : 1200;
+    const canvas = cropper.getCroppedCanvas({
+      width: size, height: cropTarget === 'profile' ? size : 675,
+      imageSmoothingQuality: "high"
+    });
+    const dataURL = cropTarget === 'profile'
+      ? (() => {
+          const circleCanvas = document.createElement("canvas");
+          circleCanvas.width = size; circleCanvas.height = size;
+          const ctx = circleCanvas.getContext("2d");
+          ctx.beginPath();
+          ctx.arc(size/2, size/2, size/2, 0, Math.PI*2);
+          ctx.clip();
+          ctx.drawImage(canvas, 0, 0, size, size);
+          return circleCanvas.toDataURL("image/png");
+        })()
+      : canvas.toDataURL("image/jpeg", 0.92);
+    if (cropTarget === "profile") {
+      document.getElementById("profilePreviewImg").src = dataURL;
+      document.getElementById("profilePreviewImg").dataset.cropped = dataURL;
+    } else {
+      document.getElementById("coverPreviewImg").src = dataURL;
+      document.getElementById("coverPreviewImg").dataset.cropped = dataURL;
+    }
+    closeCropper();
+  }
+  document.getElementById('profilePic').addEventListener('change', e => {
+    const f = e.target.files[0]; if (f) openCropper(f, 'profile');
+  });
+  document.getElementById('coverPhoto').addEventListener('change', e => {
+    const f = e.target.files[0]; if (f) openCropper(f, 'cover');
+  });
+  document.getElementById('btnSaveCrop').addEventListener('click', saveCrop);
+  document.getElementById('btnCancelCrop').addEventListener('click', closeCropper);
+
+  // ========== Load Settings ==========
+  function loadSettings() {
+    const user = getCurrentUser();
+    if (!user) return;
+    document.getElementById("currentEmailPhone").value = user.email || "";
+    document.getElementById("bio").value = user.bio || "";
+    if (user.profilePic) document.getElementById("profilePreviewImg").src = user.profilePic;
+    if (user.coverPhoto) document.getElementById("coverPreviewImg").src = user.coverPhoto;
+  }
+
+  // ========== Save Settings ==========
+  function saveSettings() {
+    let user = getCurrentUser();
+    if (!user) return;
+
+    // Update user info (no password required)
+    const newEmail = document.getElementById("newEmailPhone").value.trim();
+    if (newEmail) user.email = newEmail;
+
+    const newPass = document.getElementById("newPassword").value.trim();
+    if (newPass) user.password = newPass; // optional
+
+    user.bio = document.getElementById("bio").value;
+
+    const croppedProfile = document.getElementById("profilePreviewImg").dataset.cropped;
+    const croppedCover = document.getElementById("coverPreviewImg").dataset.cropped;
+    if (croppedProfile) user.profilePic = croppedProfile;
+    if (croppedCover) user.coverPhoto = croppedCover;
+
+    updateUserEverywhere(user);
+
+    alert("✅ Changes saved successfully!");
+    window.location.href = "profile.html"; // redirect to see updates
+  }
+
+  // ========== Utility actions ==========
+  function clearSaved() {
+    localStorage.removeItem("savedItems");
+    alert("All saved items cleared!");
+  }
+
+  function deleteAccount() {
+    if (!confirm("Are you sure you want to delete your account?")) return;
+    let users = getUsers();
+    const user = getCurrentUser();
+    users = users.filter(u => u.email !== user.email);
+    saveUsers(users);
+    localStorage.removeItem("loggedInUser");
+    localStorage.removeItem("loggedInUserId");
+    window.location.href = "login_signup.html";
+  }
+
+  function logoutUser() {
+  // Clear all login-related data
+  localStorage.removeItem("loggedInUserId");
+  localStorage.removeItem("loggedInUser");
+  localStorage.removeItem("redirectAfterLogin");
+  localStorage.removeItem("openChatWith");
+  localStorage.removeItem("selectedSellerId");
+  
+  // Optional: keep marketplaceItems globally (don’t remove that!)
+  alert("You have been logged out.");
+  window.location.href = "login_signup.html";
+}
+
+
+  window.onload = loadSettings;
+</script>
+
+</body>
+</html>

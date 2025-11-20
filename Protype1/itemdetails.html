@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Item Details</title>
+  <link rel="stylesheet" href="itemdetails.css">
+</head>
+<body>
+
+<!-- Top Navigation Bar -->
+<header class="top-bar">
+  <div class="logo-title">🏫 University Marketplace</div>
+
+  <nav class="nav-bubbles">
+    <a href="messages.html" class="nav-bubble">💬 Messages</a>
+    <a href="index.html" class="nav-bubble active">🛒 Marketplace</a>
+    <a href="seller-dashboard.html" class="nav-bubble">📋 My Listings</a>
+    <a href="postitem.html" class="nav-bubble sell-button">➕ Sell Item</a>
+  </nav>
+
+  <div class="top-right">
+    <a href="saved.html" class="icon-bubble">❤️ Saved Items</a>
+    <a href="profile.html" class="icon-bubble">👤 Profile</a>
+  </div>
+</header>
+
+<!-- Page Content -->
+<div class="item-page">
+  <!-- Image Gallery -->
+  <div class="gallery">
+    <div class="main-image" id="mainImage">Main Image</div>
+    <div class="thumbnails" id="thumbnails"></div>
+  </div>
+
+  <!-- Item Details -->
+  <div class="details">
+    <h2 id="itemTitle">Item Title</h2>
+    <div class="price" id="itemPrice">$0</div>
+
+    <div class="description-label">Description:</div>
+    <div class="description" id="itemDescription">Item description goes here.</div>
+
+    <div class="item-actions">
+      <button class="message-button" onclick="messageSeller()">💬 Message Seller</button>
+
+      <button class="favorite-btn" onclick="addToFavorites()">❤️ Save Item</button>
+      <button class="profile-btn" onclick="viewSellerProfile()">👤 View Seller</button>
+    </div>
+
+    <div class="location-map" id="mapPreview">[Map preview goes here]</div>
+    <div class="location-label" id="locationLabel">📍 Location</div>
+  </div>
+</div>
+
+<script>
+  function loadItemDetails() {
+    const itemId = localStorage.getItem("selectedItemId");
+    const items = JSON.parse(localStorage.getItem("marketplaceItems")) || [];
+    const item = items.find(i => String(i.id) === String(itemId));
+
+    if (!item) {
+      document.body.innerHTML = "<p>Item not found.</p>";
+      return;
+    }
+
+    // Populate text fields
+    document.getElementById("itemTitle").textContent = item.title;
+    document.getElementById("itemPrice").textContent = "$" + item.price;
+    document.getElementById("itemDescription").textContent = item.description;
+    document.getElementById("locationLabel").textContent =
+      "📍 " + (item.address || item.zipcode || "N/A");
+
+    // Handle main image + multiple images
+    const mainImage = document.getElementById("mainImage");
+    const thumbnails = document.getElementById("thumbnails");
+
+    let images = [];
+    if (item.images && item.images.length > 0) {
+      images = item.images;
+    } else if (item.image) {
+      images = [item.image];
+    }
+
+    if (images.length > 0) {
+      mainImage.innerHTML = `<img src="${images[0]}" alt="${item.title}">`;
+      thumbnails.innerHTML = images
+        .map(
+          img =>
+            `<div class="thumbnail"><img src="${img}" alt="${item.title}"></div>`
+        )
+        .join("");
+
+      // Add click event for thumbnails
+      document.querySelectorAll(".thumbnail img").forEach(imgEl => {
+        imgEl.addEventListener("click", () => {
+          mainImage.innerHTML = `<img src="${imgEl.src}" alt="${item.title}">`;
+        });
+      });
+    } else {
+      mainImage.textContent = "No Image";
+    }
+
+    // Map preview
+    const map = document.getElementById("mapPreview");
+    if (item.map && item.map.includes("iframe")) {
+      map.innerHTML = item.map;
+    } else {
+      map.textContent = "[No map provided]";
+    }
+
+    // Store seller info for messaging
+    localStorage.setItem("sellerEmail", item.sellerEmail || item.seller);
+  }
+
+  function addToFavorites() {
+    const itemId = localStorage.getItem("selectedItemId");
+    let saved = JSON.parse(localStorage.getItem("savedItems")) || [];
+    if (!saved.includes(itemId)) {
+      saved.push(itemId);
+      localStorage.setItem("savedItems", JSON.stringify(saved));
+      alert("Item saved!");
+    } else {
+      alert("Already in saved items.");
+    }
+  }
+
+  // ✅ NEW FUNCTION — Message Seller directly
+  function messageSeller() {
+    const seller = localStorage.getItem("sellerEmail");
+    const currentUser = localStorage.getItem("loggedInUserId");
+
+    if (!currentUser) {
+      alert("Please log in to message the seller.");
+      window.location.href = "login_signup.html";
+      return;
+    }
+
+    if (seller === currentUser) {
+      alert("You can’t message yourself!");
+      return;
+    }
+
+    // Store chat target and go to messages
+    localStorage.setItem("openChatWith", seller);
+    window.location.href = "messages.html";
+  }
+
+  function viewSellerProfile() {
+  const sellerEmail = localStorage.getItem("sellerEmail");
+  if (!sellerEmail) {
+    alert("Seller profile not available.");
+    return;
+  }
+  localStorage.setItem("selectedSellerId", sellerEmail);
+  window.location.href = "profile.html";
+}
+
+
+  loadItemDetails();
+</script>
+
+
+</body>
+</html>

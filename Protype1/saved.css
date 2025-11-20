@@ -1,0 +1,160 @@
+* {
+  box-sizing: border-box;
+}
+
+/* --- Top Bar --- */
+.top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  background-color: #ffffff;
+  border-bottom: 1px solid #ddd;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Logo / Title */
+.logo-title {
+  font-size: 20px;
+  font-weight: bold;
+}
+
+/* Nav Bubbles */
+.nav-bubbles {
+  display: flex;
+  gap: 15px;
+}
+
+.nav-bubble {
+  padding: 6px 14px;
+  background-color: #e6f0ff;
+  border-radius: 20px;
+  text-decoration: none;
+  color: #333;
+  font-size: 14px;
+  border: 1px solid #bbb;
+  transition: background-color 0.2s, border-color 0.2s;
+}
+
+.nav-bubble.active {
+  background-color: #d0e4ff;
+  border-color: #007bff;
+  color: #007bff;
+}
+
+.nav-bubble:hover {
+  background-color: #dce9ff;
+  border-color: #007bff;
+}
+
+/* Top Right Section */
+.top-right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.icon-bubble {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 1px solid #bbb;
+  border-radius: 20px;
+  background-color: #f0f4ff;
+  color: #333;
+  text-decoration: none;
+  font-size: 14px;
+  transition: background-color 0.2s;
+}
+
+.icon-bubble:hover {
+  background-color: #e0e8ff;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif;
+  background-color: #f2f3f5;
+}
+
+/* Bubble-style container */
+.bubble-container {
+  max-width: 1300px;
+  margin: 40px auto;
+  padding: 30px;
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.bubble-container h1 {
+  font-size: 24px;
+  margin-bottom: 25px;
+  color: #222;
+}
+
+/* Saved Items Grid */
+.saved-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 20px;
+}
+
+.item-card {
+  position: relative; /* for sold banner */
+  background-color: #fff;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+}
+
+.item-card:hover {
+  transform: translateY(-4px);
+}
+
+/* Image auto-fit */
+.item-card img {
+  width: 100%;
+  height: auto;          /* let it scale naturally */
+  max-height: 250px;     /* optional: cap super tall photos */
+  object-fit: contain;   /* no cropping, fit whole image */
+  display: block;
+}
+
+/* Sold banner */
+.sold-banner {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  background: red;
+  color: white;
+  font-size: 13px;
+  font-weight: bold;
+  padding: 4px 10px;
+  border-radius: 4px;
+  z-index: 2;
+}
+
+.item-details {
+  padding: 12px;
+  flex: 1; /* ensures details area stretches evenly */
+}
+
+.item-details strong {
+  font-size: 16px;
+  color: #000;
+  display: block;
+}
+
+.item-details p {
+  margin: 5px 0 0;
+  font-size: 14px;
+  color: #555;
+}
+

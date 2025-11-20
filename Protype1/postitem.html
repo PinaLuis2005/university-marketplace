@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Post an Item</title>
+  <link rel="stylesheet" href="postitem.css">
+  <style>
+    /* Drop area styling */
+    .drop-area {
+      border: 2px dashed #007bff;
+      border-radius: 10px;
+      padding: 20px;
+      text-align: center;
+      color: #555;
+      margin: 10px 0;
+      background-color: #f9f9f9;
+      cursor: pointer;
+    }
+    .drop-area.dragover {
+      background-color: #e0f0ff;
+      border-color: #0056b3;
+    }
+    .image-preview {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .image-preview img {
+      width: 100px;
+      height: 100px;
+      object-fit: cover;
+      border-radius: 6px;
+      border: 1px solid #ddd;
+    }
+
+    /* Dropdown container */
+    .dropdown-container {
+      position: relative;
+    }
+    .dropdown-container input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 1em;
+    }
+    .dropdown-list {
+      position: absolute;
+      top: 105%;
+      left: 0;
+      right: 0;
+      background: white;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      max-height: 200px;
+      overflow-y: auto;
+      z-index: 10;
+      display: none;
+    }
+    .dropdown-list li {
+      padding: 10px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    .dropdown-list li:hover {
+      background-color: #f0f4ff;
+    }
+  </style>
+</head>
+<body>
+
+<header class="top-bar">
+  <div class="logo-title">🏫 University Marketplace</div>
+
+  <nav class="nav-bubbles">
+    <a href="messages.html" class="nav-bubble">💬 Messages</a>
+    <a href="index.html" class="nav-bubble active">🛒 Marketplace</a>
+    <a href="seller-dashboard.html" class="nav-bubble">📋 My Listings</a>
+    <a href="postitem.html" class="nav-bubble sell-button">➕ Sell Item</a>
+  </nav>
+
+  <div class="top-right">
+    <a href="notifications.html" class="icon-bubble">🔔 Notifications</a>
+    <a href="profile.html" class="icon-bubble">👤 Profile</a>
+  </div>
+</header>
+
+<div class="container">
+  <h1>Post an Item</h1>
+
+  <form id="postForm" class="post-form">
+    <label for="title">Item Title</label>
+    <input type="text" id="title" name="title" required>
+
+    <label for="price">Price</label>
+    <input type="text" id="price" name="price" required>
+
+    <label for="category">Category</label>
+    <div class="dropdown-container">
+      <input type="text" id="categorySearch" placeholder="Type or select a category..." autocomplete="off">
+      <ul id="categoryList" class="dropdown-list"></ul>
+    </div>
+
+    <label for="condition">Condition</label>
+<select id="condition" name="condition" required>
+  <option value="">Select Condition...</option>
+  <option>New</option>
+  <option>Like New</option>
+  <option>Used</option>
+  <option>For Parts or Repair</option>
+</select>
+
+
+    <label for="description">Description <span style="font-weight:normal; color:#666;">(optional)</span></label>
+<textarea id="description" name="description" rows="5" placeholder="Add details about your item... (optional)"></textarea>
+
+
+    <label>Upload Images</label>
+    <div class="drop-area" id="dropArea">
+      Drag & Drop images here or click to select
+      <input type="file" id="images" name="images" multiple accept="image/*" style="display:none;">
+    </div>
+    <div id="imagePreview" class="image-preview"></div>
+
+    <h3>Location Details</h3>
+
+<label for="zipcode">Zip Code</label>
+<input type="text" id="zipcode" name="zipcode" required>
+
+<label for="building">Building Name</label>
+<input type="text" id="building" name="building" placeholder="e.g., Nike Hall or Knights Plaza">
+
+<label for="apartment">Apartment / Room Number (Optional)</label>
+<input type="text" id="apartment" name="apartment" placeholder="e.g., Apt 204 or Room B">
+
+<label for="address">Street Address</label>
+<input type="text" id="address" name="address" required placeholder="e.g., 123 University Blvd">
+
+
+    <label for="map">Map Preview (Google Maps Embed - Optional)</label>
+    <textarea id="map" name="map" rows="4"></textarea>
+
+    <button type="submit">Post Item</button>
+  </form>
+</div>
+
+<script>
+  /* ================================
+     SMART CATEGORY DROPDOWN
+  ================================= */
+  const categories = [
+  "Electronics",
+  "Books & Study",
+  "Furniture",
+  "Clothing & Accessories",
+  "Dorm & Home Essentials",
+  "Entertainment & Hobbies",
+  "Transportation",
+  "Tools & Hardware",
+  "Beauty & Personal Care",
+  "Sports & Outdoors",
+  "Appliances",
+  "Campus & Travel",
+  "Pets & Plants",
+  "Other"
+];
+
+  const categorySearch = document.getElementById("categorySearch");
+  const categoryList = document.getElementById("categoryList");
+
+  function showCategoryList(filtered = categories) {
+    categoryList.innerHTML = "";
+    filtered.forEach(cat => {
+      const li = document.createElement("li");
+      li.textContent = cat;
+      li.addEventListener("click", () => {
+        categorySearch.value = cat;
+        categoryList.style.display = "none";
+      });
+      categoryList.appendChild(li);
+    });
+    categoryList.style.display = filtered.length ? "block" : "none";
+  }
+
+  categorySearch.addEventListener("input", () => {
+    const query = categorySearch.value.toLowerCase();
+    const filtered = categories.filter(cat => cat.toLowerCase().includes(query));
+    showCategoryList(filtered);
+  });
+  categorySearch.addEventListener("focus", () => showCategoryList(categories));
+  document.addEventListener("click", e => {
+    if (!e.target.closest(".dropdown-container")) categoryList.style.display = "none";
+  });
+
+  /* ================================
+     IMAGE UPLOAD HANDLING
+  ================================= */
+  const dropArea = document.getElementById("dropArea");
+  const fileInput = document.getElementById("images");
+  const preview = document.getElementById("imagePreview");
+  let selectedFiles = [];
+
+  dropArea.addEventListener("click", () => fileInput.click());
+  dropArea.addEventListener("dragover", e => {
+    e.preventDefault();
+    dropArea.classList.add("dragover");
+  });
+  dropArea.addEventListener("dragleave", () => dropArea.classList.remove("dragover"));
+  dropArea.addEventListener("drop", e => {
+    e.preventDefault();
+    dropArea.classList.remove("dragover");
+    handleFiles(e.dataTransfer.files);
+  });
+  fileInput.addEventListener("change", e => handleFiles(e.target.files));
+
+  function handleFiles(files) {
+    selectedFiles = [...selectedFiles, ...files];
+    preview.innerHTML = "";
+    selectedFiles.forEach(file => {
+      const reader = new FileReader();
+      reader.onload = e => {
+        const img = document.createElement("img");
+        img.src = e.target.result;
+        preview.appendChild(img);
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  /* ================================
+     POST ITEM VALIDATION + SAVE
+  ================================= */
+  document.getElementById("postForm").addEventListener("submit", async e => {
+    e.preventDefault();
+
+    const user =
+      JSON.parse(localStorage.getItem("loggedInUser")) ||
+      { email: localStorage.getItem("loggedInUserId") };
+
+    if (!user || !user.email) {
+      alert("Please log in first!");
+      localStorage.setItem("redirectAfterLogin", "postitem.html");
+      window.location.href = "login_signup.html";
+      return;
+    }
+
+    // --- Collect values ---
+    const title = document.getElementById("title").value.trim();
+    const price = document.getElementById("price").value.trim();
+    const category = document.getElementById("categorySearch").value.trim();
+    const condition = document.getElementById("condition").value;
+    const description = document.getElementById("description").value.trim();
+    const zipcode = document.getElementById("zipcode").value.trim();
+    const building = document.getElementById("building").value.trim();
+    const apartment = document.getElementById("apartment").value.trim();
+    const address = document.getElementById("address").value.trim();
+
+    // --- Validation ---
+    if (!title) return alert("⚠️ Please enter a title for your item.");
+    if (!price || isNaN(price) || Number(price) <= 0)
+      return alert("⚠️ Please enter a valid price greater than 0.");
+    if (!category)
+      return alert("⚠️ Please select or type a category.");
+    if (!condition || condition === "Select Condition...")
+      return alert("⚠️ Please select the item condition.");
+    if (selectedFiles.length < 1)
+      return alert("⚠️ Please upload at least 1 image.");
+    if (!zipcode || !building || !address)
+      return alert("⚠️ Please complete all required location fields (Zip Code, Building, Address).");
+
+    // --- Convert images ---
+    const images = await Promise.all(
+      selectedFiles.map(file => new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      }))
+    );
+
+    // --- Build item object ---
+    const newItem = {
+      id: Date.now(),
+      sellerEmail: user.email,
+      sellerName: user.name || user.email,
+      title,
+      price,
+      category,
+      condition,
+      description, // optional
+      images,
+      zipcode,
+      building,
+      apartment, // optional
+      address,
+      map: document.getElementById("map").value.trim(), // optional
+      sold: false,
+      datePosted: new Date().toLocaleString()
+    };
+
+    // --- Save to storage ---
+    const items = JSON.parse(localStorage.getItem("marketplaceItems")) || [];
+    items.push(newItem);
+    localStorage.setItem("marketplaceItems", JSON.stringify(items));
+
+    alert("✅ Item added successfully!");
+    window.location.href = "seller-dashboard.html";
+  });
+</script>
+
+
+
+</body>
+</html>
