@@ -59,27 +59,6 @@
     </div>
     <div class="form-grid">
       <div class="form-field">
-        <label>Full Name</label>
-        <input type="text" id="fullName" placeholder="Your name" />
-      </div>
-      <div class="form-field">
-        <label>Major</label>
-        <input type="text" id="major" placeholder="Your major" />
-      </div>
-    </div>
-    <div class="form-grid">
-      <div class="form-field">
-        <label>University</label>
-        <input type="text" id="university" placeholder="University / College" />
-      </div>
-      <div class="form-field">
-        <label>Feedback Score</label>
-        <input type="number" id="feedbackScore" min="0" max="5" step="0.1" placeholder="4.8" />
-        <small class="muted">Optional: override your visible rating</small>
-      </div>
-    </div>
-    <div class="form-grid">
-      <div class="form-field">
         <label>Current Email / Phone</label>
         <input type="text" id="currentEmailPhone" readonly />
       </div>
@@ -188,18 +167,6 @@
     const id = localStorage.getItem("loggedInUserId");
     const users = getUsers();
     return users.find(u => u.email === id) || null;
-  }
-
-  function withProfileDefaults(user) {
-    const enriched = { ...user };
-    if (!enriched.name) enriched.name = enriched.email || "Student";
-    if (!enriched.major) enriched.major = "Major not set";
-    if (!enriched.university) enriched.university = "University";
-    if (!enriched.totalRatings || !enriched.numRatings) {
-      enriched.totalRatings = enriched.totalRatings || 24;
-      enriched.numRatings = enriched.numRatings || 6;
-    }
-    return enriched;
   }
   function updateUserEverywhere(user, previousEmail) {
     const users = getUsers();
@@ -335,17 +302,6 @@
     if (!user) return;
     const previousEmail = user.email;
 
-    user.name = document.getElementById("fullName").value.trim() || user.name;
-    user.major = document.getElementById("major").value.trim() || user.major;
-    user.university =
-      document.getElementById("university").value.trim() || user.university;
-
-    const feedback = parseFloat(document.getElementById("feedbackScore").value);
-    if (!isNaN(feedback)) {
-      user.numRatings = 10;
-      user.totalRatings = parseFloat((feedback * user.numRatings).toFixed(1));
-    }
-
     const newEmail = document.getElementById("newEmailPhone").value.trim();
     if (newEmail) user.email = newEmail;
 
@@ -359,7 +315,7 @@
     if (croppedProfile) user.profilePic = croppedProfile;
     if (croppedCover) user.coverPhoto = croppedCover;
 
-    updateUserEverywhere(withProfileDefaults(user), previousEmail);
+    updateUserEverywhere(user, previousEmail);
 
     alert("✅ Changes saved successfully!");
     window.location.href = "profile.html";

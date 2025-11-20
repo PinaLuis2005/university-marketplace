@@ -135,32 +135,17 @@ function loadChatList() {
     return;
   }
 
-  convos
-    .sort((a, b) => {
-      const lastA = a.messages.at(-1)?.timestamp || 0;
-      const lastB = b.messages.at(-1)?.timestamp || 0;
-      return lastB - lastA;
-    })
-    .forEach(conv => {
-      const partner = conv.participants.find(p => p !== user.email) || conv.participants[0];
-      const lastMsg = conv.messages.at(-1);
-      const preview = lastMsg
-        ? lastMsg.type === "photo"
-          ? "📷 Photo"
-          : lastMsg.type === "voice"
-            ? "🎤 Voice message"
-            : (lastMsg.content || lastMsg.text || "").slice(0, 50)
-        : "No messages";
-      const li = document.createElement("li");
-      li.className = "conversation-item";
-      li.dataset.partner = partner;
-      li.innerHTML = `
-        <div class="name">${resolveName(partner, conv)}</div>
-        <div class="preview">${preview}</div>
-      `;
-      li.addEventListener("click", () => openChat(partner));
-      chatList.appendChild(li);
-    });
+  convos.forEach(conv => {
+    const li = document.createElement("li");
+    li.className = "conversation-item";
+    const lastMsg = conv.chat?.at(-1);
+    li.innerHTML = `
+      <div class="name">${conv.with}</div>
+      <div class="preview">${lastMsg ? lastMsg.text.slice(0, 50) : "No messages"}</div>
+    `;
+    li.addEventListener("click", () => openChat(conv.with));
+    chatList.appendChild(li);
+  });
 }
 
 // --- Open Chat ---
@@ -170,13 +155,14 @@ function openChat(partnerEmail, partnerName) {
 
   ensureConversation(user.email, partnerEmail, partnerName);
   currentChatPartner = partnerEmail;
-
   Array.from(chatList.children).forEach(li => {
-    li.classList.toggle("active", li.dataset.partner === partnerEmail);
+    if (li.textContent.includes(partnerEmail)) {
+      li.classList.add("active");
+    } else {
+      li.classList.remove("active");
+    }
   });
-
-  const convo = getConversations().find(c => c.key === conversationKey(user.email, partnerEmail));
-  chatHeader.textContent = `Chat with ${resolveName(partnerEmail, convo)}`;
+  chatHeader.textContent = `Chat with ${partnerEmail}`;
   messageInput.disabled = false;
   sendBtn.disabled = false;
   messageInput.focus();
