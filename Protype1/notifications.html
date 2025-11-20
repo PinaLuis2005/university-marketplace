@@ -3,97 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <title>Notifications</title>
+  <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="notifications.css">
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f5f5f5;
-      margin: 0;
-      padding: 0;
-    }
-
-    .notifications-bubble {
-      max-width: 700px;
-      margin: 50px auto;
-      background: white;
-      padding: 20px 30px;
-      border-radius: 10px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
-
-    .notifications-bubble h1 {
-      margin-bottom: 20px;
-      color: #333;
-    }
-
-    .notifications-list {
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-    }
-
-    .notification {
-      display: flex;
-      align-items: flex-start;
-      gap: 15px;
-      padding: 12px 15px;
-      border: 1px solid #eee;
-      border-radius: 8px;
-      background: #fff;
-      transition: background-color 0.2s;
-    }
-
-    .notification.unread {
-      background: #e9f3ff;
-    }
-
-    .notification:hover {
-      background: #f8f8f8;
-    }
-
-    .notification .icon {
-      font-size: 25px;
-    }
-
-    .notification .text {
-      flex: 1;
-    }
-
-    .notification strong {
-      display: block;
-      margin-bottom: 4px;
-      color: #333;
-    }
-
-    .notification p {
-      margin: 0;
-      color: #555;
-    }
-
-    .notification .time {
-      font-size: 12px;
-      color: #888;
-      margin-top: 5px;
-      display: block;
-    }
-
-    .mark-read {
-      background: #007bff;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      padding: 4px 8px;
-      cursor: pointer;
-      font-size: 12px;
-      align-self: center;
-    }
-
-    .mark-read:hover {
-      background: #005ecb;
-    }
-  </style>
 </head>
-<body>
+<body class="bg-neutral-50">
 <script>
   // Redirect to login if not authenticated
   if (!localStorage.getItem("loggedInUserId")) {
@@ -103,27 +16,41 @@
 </script>
 
 <header class="top-bar">
-  <div class="logo-title">🏫 University Marketplace</div>
+  <div class="brand-group">
+    <div class="brand-logo">U</div>
+    <div class="logo-title">University Marketplace</div>
+  </div>
 
-  <nav class="nav-bubbles">
+  <nav class="nav-bubbles" aria-label="Main navigation">
     <a href="messages.html" class="nav-bubble">💬 Messages</a>
     <a href="index.html" class="nav-bubble">🛒 Marketplace</a>
     <a href="seller-dashboard.html" class="nav-bubble">📋 My Listings</a>
-    <a href="postitem.html" class="nav-bubble">➕ Sell Item</a>
+    <a href="postitem.html" class="nav-bubble sell-button">➕ Sell Item</a>
   </nav>
 
-  <div class="top-right">
-    <a href="notifications.html" class="icon-bubble active">🔔 Notifications</a>
-    <a href="profile.html" class="icon-bubble">👤 Profile</a>
+  <div class="top-actions">
+    <div class="search-container">
+      <input type="text" class="search-input" placeholder="Search" aria-label="Search">
+      <button class="search-btn" aria-label="Search">🔍</button>
+    </div>
+    <div class="top-icons">
+      <a href="notifications.html" class="icon-bubble active" aria-label="Notifications">🔔</a>
+      <a href="profile.html" class="icon-bubble" aria-label="Profile">👤</a>
+    </div>
   </div>
 </header>
 
-<div class="notifications-bubble">
-  <h1>🔔 Notifications</h1>
-  <div class="notifications-list" id="notificationsList">
-    <p>Loading your notifications...</p>
+<main class="page-shell">
+  <div class="section-card">
+    <div class="section-header">
+      <h1 class="section-title">Notifications</h1>
+      <span class="pill">Live feed</span>
+    </div>
+    <div class="notifications-list" id="notificationsList">
+      <p class="muted">Loading your notifications...</p>
+    </div>
   </div>
-</div>
+</main>
 
 <script>
 function getCurrentUser() {
