@@ -54,9 +54,30 @@
       </div>
 
       <div class="details section-card">
-        <div class="detail-block">
-          <div class="description-label">Description</div>
+        <div class="detail-header">
+          <div>
+            <p class="muted">Listing details</p>
+            <h2 class="detail-title">Overview</h2>
+          </div>
+          <div class="meta-tags">
+            <span class="pill soft">Secure checkout ready</span>
+          </div>
+        </div>
+
+        <div class="detail-section">
+          <div class="detail-label">Description</div>
           <div class="description" id="itemDescription">Item description goes here.</div>
+        </div>
+
+        <div class="info-panels">
+          <div class="info-card">
+            <div class="info-label">Location</div>
+            <p class="info-text" id="locationDetail">📍 Location</p>
+          </div>
+          <div class="info-card">
+            <div class="info-label">Delivery</div>
+            <p class="info-text">Pickup or campus drop-off available</p>
+          </div>
         </div>
 
         <div class="item-actions button-row">
@@ -90,6 +111,10 @@
     document.getElementById("itemDescription").textContent = item.description;
     document.getElementById("locationLabel").textContent =
       "📍 " + (item.address || item.zipcode || "N/A");
+    const locationDetail = document.getElementById("locationDetail");
+    if (locationDetail) {
+      locationDetail.textContent = "📍 " + (item.address || item.zipcode || "N/A");
+    }
 
     const mainImage = document.getElementById("mainImage");
     const thumbnails = document.getElementById("thumbnails");
@@ -104,6 +129,14 @@
     }
 
     let currentIndex = 0;
+
+    const toggleChrome = show => {
+      [prevBtn, nextBtn].forEach(btn => {
+        if (!btn) return;
+        btn.classList.toggle("is-hidden", !show);
+      });
+      thumbnails.classList.toggle("is-hidden", !show);
+    };
 
     const renderMainImage = () => {
       const currentSrc = images[currentIndex];
@@ -122,36 +155,43 @@
     };
 
     if (images.length > 0) {
-      thumbnails.innerHTML = images
-        .map(
-          (img, index) =>
-            `<button class="thumbnail" type="button" aria-label="View image ${index + 1}"><img src="${img}" alt="${item.title}"></button>`
-        )
-        .join("");
+      const hasCarousel = images.length > 1;
 
-      document.querySelectorAll(".thumbnail").forEach((btn, index) => {
-        btn.addEventListener("click", () => {
-          currentIndex = index;
-          renderMainImage();
+      if (hasCarousel) {
+        thumbnails.innerHTML = images
+          .map(
+            (img, index) =>
+              `<button class="thumbnail" type="button" aria-label="View image ${index + 1}"><img src="${img}" alt="${item.title}"></button>`
+          )
+          .join("");
+
+        document.querySelectorAll(".thumbnail").forEach((btn, index) => {
+          btn.addEventListener("click", () => {
+            currentIndex = index;
+            renderMainImage();
+          });
         });
-      });
 
-      const moveCarousel = direction => {
-        currentIndex = (currentIndex + direction + images.length) % images.length;
-        renderMainImage();
-      };
+        const moveCarousel = direction => {
+          currentIndex = (currentIndex + direction + images.length) % images.length;
+          renderMainImage();
+        };
 
-      if (prevBtn && nextBtn) {
-        prevBtn.addEventListener("click", () => moveCarousel(-1));
-        nextBtn.addEventListener("click", () => moveCarousel(1));
+        if (prevBtn && nextBtn) {
+          prevBtn.addEventListener("click", () => moveCarousel(-1));
+          nextBtn.addEventListener("click", () => moveCarousel(1));
+        }
+
+        toggleChrome(true);
+      } else {
+        toggleChrome(false);
       }
 
       renderMainImage();
     } else {
       mainImage.textContent = "No Image";
       thumbnails.innerHTML = "";
-      if (prevBtn) prevBtn.disabled = true;
-      if (nextBtn) nextBtn.disabled = true;
+      toggleChrome(false);
     }
 
     const map = document.getElementById("mapPreview");
