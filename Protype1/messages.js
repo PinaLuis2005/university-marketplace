@@ -5,9 +5,11 @@ function getUsers() {
   return JSON.parse(localStorage.getItem("users")) || [];
 }
 
-function saveUsers(users) {
-  localStorage.setItem("users", JSON.stringify(users));
-}
+// --- User helpers ---
+const getUsers = () => JSON.parse(localStorage.getItem("users")) || [];
+const saveUsers = users => localStorage.setItem("users", JSON.stringify(users));
+
+const getUserByEmail = email => (email ? getUsers().find(u => u.email === email) || null : null);
 
 function getUserByEmail(email) {
   if (!email) return null;
@@ -20,8 +22,21 @@ function getCurrentUser() {
   const obj = JSON.parse(localStorage.getItem("loggedInUser"));
   if (obj && obj.email) return obj;
   const id = localStorage.getItem("loggedInUserId");
+  if (!id) return null;
+  return getUsers().find(u => u.email === id) || null;
+}
+
+function ensureUserRecord(email, name, profilePic) {
+  if (!email) return;
   const users = getUsers();
-  return users.find(u => u.email === id) || null;
+  const idx = users.findIndex(u => u.email === email);
+  if (idx === -1) {
+    users.push({ email, name: name || email, profilePic });
+  } else {
+    if (name && !users[idx].name) users[idx].name = name;
+    if (profilePic && !users[idx].profilePic) users[idx].profilePic = profilePic;
+  }
+  saveUsers(users);
 }
 
 function getConversations() {
@@ -127,7 +142,7 @@ if (pendingChat && activeUser) {
   localStorage.removeItem("openChatMeta");
 }
 
-// --- Load Chat List ---
+// --- Chat List ---
 function loadChatList() {
   const user = getCurrentUser();
   if (!user) return;
@@ -220,6 +235,8 @@ function addToUserMessages(ownerEmail, partnerEmail, msg) {
     owner = { email: ownerEmail, name: ownerEmail, messages: [] };
     users.push(owner);
   }
+  ownerConv.messages.push(msg);
+  saveConversationList(user.email, ownerList);
 
   owner.messages = owner.messages || [];
   let convo = owner.messages.find(c => c.with === partnerEmail);
@@ -355,5 +372,74 @@ photoInput?.addEventListener("change", e => {
   reader.readAsDataURL(file);
 });
 
-// --- Auto-load Chat List ---
+// --- Event bindings ---
+sendBtn.addEventListener("click", () => {
+  const text = messageInput.value.trim();
+  if (!text) return;
+  pushMessage("text", text);
+  messageInput.value = "";
+});
+
+messageInput.addEventListener("keypress", e => {
+  if (e.key === "Enter") {
+    e.preventDefault();
+    const text = messageInput.value.trim();
+    if (!text) return;
+    pushMessage("text", text);
+    messageInput.value = "";
+  }
+});
+
+voiceBtn?.addEventListener("click", () => {
+  pushMessage("audio", "Voice message");
+});
+
+photoBtn?.addEventListener("click", () => photoInput?.click());
+
+photoInput?.addEventListener("change", e => {
+  const file = e.target.files?.[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    pushMessage("image", ev.target.result);
+    photoInput.value = "";
+  };
+  reader.readAsDataURL(file);
+});
+
+videoBtn?.addEventListener("click", () => videoInput?.click());
+
+videoInput?.addEventListener("change", e => {
+  const file = e.target.files?.[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    pushMessage("video", ev.target.result);
+    videoInput.value = "";
+  };
+  reader.readAsDataURL(file);
+});
+
+// --- Pending chat from item/profile ---
+const pendingChat = localStorage.getItem("openChatWith");
+const pendingMeta = localStorage.getItem("openChatMeta");
+
+function bootstrapPending() {
+  const user = getCurrentUser();
+  if (!user) return;
+  const meta = pendingMeta ? JSON.parse(pendingMeta) : {};
+  if (pendingChat) {
+    ensureConversation(user.email, pendingChat, meta);
+    ensureConversation(pendingChat, user.email, { name: user.name, profilePic: user.profilePic });
+    currentChatPartner = pendingChat;
+  }
+}
+
+bootstrapPending();
 loadChatList();
+
+if (pendingChat) {
+  openChat(pendingChat, JSON.parse(pendingMeta || "{}")?.name || pendingChat);
+  localStorage.removeItem("openChatWith");
+  localStorage.removeItem("openChatMeta");
+}
