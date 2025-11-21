@@ -9,6 +9,11 @@ function saveUsers(users) {
   localStorage.setItem("users", JSON.stringify(users));
 }
 
+function getUserByEmail(email) {
+  if (!email) return null;
+  return getUsers().find(u => u.email === email) || null;
+}
+
 function getCurrentUser() {
   const profile = JSON.parse(localStorage.getItem("userProfile"));
   if (profile && profile.email) return profile;
@@ -198,7 +203,7 @@ function renderMessages() {
     div.innerHTML = `
       ${body}
       <small style="display:block;opacity:0.6;font-size:11px;margin-top:3px;">
-        ${msg.time || ""}
+        ${msg.time || formatTime(msg.timestamp)}
       </small>
     `;
     chatMessages.appendChild(div);
@@ -267,6 +272,53 @@ function pushMessage(type, content) {
   renderMessages();
   loadChatList();
 }
+// --- Send Message ---
+sendBtn.addEventListener("click", () => {
+  const text = messageInput.value.trim();
+  if (!text) return;
+  pushMessage("text", text);
+  messageInput.value = "";
+});
+
+messageInput.addEventListener("keypress", e => {
+  if (e.key === "Enter") {
+    e.preventDefault();
+    const text = messageInput.value.trim();
+    if (!text) return;
+    pushMessage("text", text);
+    messageInput.value = "";
+  }
+});
+
+voiceBtn?.addEventListener("click", () => {
+  pushMessage("voice", "Voice message");
+});
+
+photoBtn?.addEventListener("click", () => photoInput?.click());
+
+photoInput?.addEventListener("change", e => {
+  const file = e.target.files?.[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    pushMessage("image", ev.target.result);
+    photoInput.value = "";
+  };
+  reader.readAsDataURL(file);
+});
+
+videoBtn?.addEventListener("click", () => videoInput?.click());
+
+videoInput?.addEventListener("change", e => {
+  const file = e.target.files?.[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    pushMessage("video", ev.target.result);
+    videoInput.value = "";
+  };
+  reader.readAsDataURL(file);
+});
 
 // --- Send Message ---
 sendBtn.addEventListener("click", () => {

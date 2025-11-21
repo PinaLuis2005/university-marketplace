@@ -96,6 +96,9 @@
 </main>
 
 <script>
+  const getUsers = () => JSON.parse(localStorage.getItem("users")) || [];
+  const getUserByEmail = email => getUsers().find(u => u.email === email) || null;
+
   function loadItemDetails() {
     const itemId = localStorage.getItem("selectedItemId");
     const items = JSON.parse(localStorage.getItem("marketplaceItems")) || [];

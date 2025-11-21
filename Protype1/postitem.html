@@ -204,12 +204,15 @@
   /* ================================
      POST ITEM VALIDATION + SAVE
   ================================= */
+  const getProfile = () =>
+    JSON.parse(localStorage.getItem("userProfile")) ||
+    JSON.parse(localStorage.getItem("loggedInUser")) ||
+    { email: localStorage.getItem("loggedInUserId") };
+
   document.getElementById("postForm").addEventListener("submit", async e => {
     e.preventDefault();
 
-    const user =
-      JSON.parse(localStorage.getItem("loggedInUser")) ||
-      { email: localStorage.getItem("loggedInUserId") };
+    const user = getProfile();
 
     if (!user || !user.email) {
       alert("Please log in first!");
@@ -253,10 +256,15 @@
     );
 
     // --- Build item object ---
+    const sellerName = user.name || user.email;
     const newItem = {
       id: Date.now(),
       sellerEmail: user.email,
-      sellerName: user.name || user.email,
+      sellerName,
+      sellerMajor: user.major || "",
+      sellerResidence: user.residence || "",
+      sellerGradYear: user.gradYear || "",
+      sellerProfilePic: user.profilePic || "",
       title,
       price,
       category,
