@@ -3,56 +3,102 @@
 <head>
   <meta charset="UTF-8">
   <title>Item Details</title>
+  <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="itemdetails.css">
 </head>
-<body>
+<body class="bg-neutral-50">
 
-<!-- Top Navigation Bar -->
 <header class="top-bar">
-  <div class="logo-title">🏫 University Marketplace</div>
+  <div class="brand-group">
+    <div class="brand-logo">U</div>
+    <div class="logo-title">University Marketplace</div>
+  </div>
 
-  <nav class="nav-bubbles">
+  <nav class="nav-bubbles" aria-label="Main navigation">
     <a href="messages.html" class="nav-bubble">💬 Messages</a>
     <a href="index.html" class="nav-bubble active">🛒 Marketplace</a>
     <a href="seller-dashboard.html" class="nav-bubble">📋 My Listings</a>
     <a href="postitem.html" class="nav-bubble sell-button">➕ Sell Item</a>
   </nav>
 
-  <div class="top-right">
-    <a href="saved.html" class="icon-bubble">❤️ Saved Items</a>
-    <a href="profile.html" class="icon-bubble">👤 Profile</a>
+  <div class="top-actions">
+    <div class="search-container">
+      <input type="text" class="search-input" placeholder="Search Marketplace..." aria-label="Search Marketplace">
+      <button class="search-btn" aria-label="Search">🔍</button>
+    </div>
+    <div class="top-icons">
+      <a href="notifications.html" class="icon-bubble" aria-label="Notifications">🔔</a>
+      <a href="profile.html" class="icon-bubble" aria-label="Profile">👤</a>
+    </div>
   </div>
 </header>
 
-<!-- Page Content -->
-<div class="item-page">
-  <!-- Image Gallery -->
-  <div class="gallery">
-    <div class="main-image" id="mainImage">Main Image</div>
-    <div class="thumbnails" id="thumbnails"></div>
+<main class="page-shell">
+  <div class="content-stack">
+    <header class="section-header">
+      <div>
+        <h1 class="section-title" id="itemTitle">Item Title</h1>
+        <p class="muted" id="locationLabel">📍 Location</p>
+      </div>
+      <div class="price-pill" id="itemPrice">$0</div>
+    </header>
+
+    <section class="item-layout">
+      <div class="gallery section-card">
+        <div class="main-image carousel-shell">
+          <button class="carousel-arrow prev" type="button" aria-label="Previous image" id="prevImage">&#8592;</button>
+          <div class="main-image-stage listing-image-container" id="mainImage">Main Image</div>
+          <button class="carousel-arrow next" type="button" aria-label="Next image" id="nextImage">&#8594;</button>
+        </div>
+        <div class="thumbnails" id="thumbnails"></div>
+      </div>
+
+      <div class="details section-card">
+        <div class="detail-header">
+          <div>
+            <p class="muted">Listing details</p>
+            <h2 class="detail-title">Overview</h2>
+          </div>
+          <div class="meta-tags">
+            <span class="pill soft">Secure checkout ready</span>
+          </div>
+        </div>
+
+        <div class="detail-section">
+          <div class="detail-label">Description</div>
+          <div class="description" id="itemDescription">Item description goes here.</div>
+        </div>
+
+        <div class="info-panels">
+          <div class="info-card">
+            <div class="info-label">Location</div>
+            <p class="info-text" id="locationDetail">📍 Location</p>
+          </div>
+          <div class="info-card">
+            <div class="info-label">Delivery</div>
+            <p class="info-text">Pickup or campus drop-off available</p>
+          </div>
+        </div>
+
+        <div class="item-actions button-row">
+          <button class="btn-primary" onclick="messageSeller()">💬 Message Seller</button>
+          <button class="btn-secondary" onclick="addToFavorites()">❤️ Save Item</button>
+          <button class="btn-secondary" onclick="viewSellerProfile()">👤 View Seller</button>
+        </div>
+
+        <div class="map-card">
+          <div class="map-label">Location Preview</div>
+          <div class="location-map" id="mapPreview">[Map preview goes here]</div>
+        </div>
+      </div>
+    </section>
   </div>
-
-  <!-- Item Details -->
-  <div class="details">
-    <h2 id="itemTitle">Item Title</h2>
-    <div class="price" id="itemPrice">$0</div>
-
-    <div class="description-label">Description:</div>
-    <div class="description" id="itemDescription">Item description goes here.</div>
-
-    <div class="item-actions">
-      <button class="message-button" onclick="messageSeller()">💬 Message Seller</button>
-
-      <button class="favorite-btn" onclick="addToFavorites()">❤️ Save Item</button>
-      <button class="profile-btn" onclick="viewSellerProfile()">👤 View Seller</button>
-    </div>
-
-    <div class="location-map" id="mapPreview">[Map preview goes here]</div>
-    <div class="location-label" id="locationLabel">📍 Location</div>
-  </div>
-</div>
+</main>
 
 <script>
+  const getUsers = () => JSON.parse(localStorage.getItem("users")) || [];
+  const getUserByEmail = email => getUsers().find(u => u.email === email) || null;
+
   function loadItemDetails() {
     const itemId = localStorage.getItem("selectedItemId");
     const items = JSON.parse(localStorage.getItem("marketplaceItems")) || [];
@@ -63,16 +109,30 @@
       return;
     }
 
-    // Populate text fields
     document.getElementById("itemTitle").textContent = item.title;
     document.getElementById("itemPrice").textContent = "$" + item.price;
     document.getElementById("itemDescription").textContent = item.description;
     document.getElementById("locationLabel").textContent =
       "📍 " + (item.address || item.zipcode || "N/A");
+    const locationDetail = document.getElementById("locationDetail");
+    if (locationDetail) {
+      locationDetail.textContent = "📍 " + (item.address || item.zipcode || "N/A");
+    }
 
-    // Handle main image + multiple images
+    const sellerProfile = getUserByEmail(item.sellerEmail) || {};
+    const sellerPic = sellerProfile.profilePic || item.sellerProfilePic || "";
+    const sellerName = sellerProfile.name || item.sellerName || item.sellerEmail || item.seller || "Seller";
+    localStorage.setItem("sellerName", sellerName);
+    localStorage.setItem("sellerMajor", sellerProfile.major || item.sellerMajor || "");
+    localStorage.setItem("sellerResidence", sellerProfile.residence || item.sellerResidence || "");
+    localStorage.setItem("sellerGradYear", sellerProfile.gradYear || item.sellerGradYear || "");
+    ensureUserStub(item.sellerEmail, sellerName, sellerPic);
+    localStorage.setItem("sellerProfilePic", sellerPic || "");
+
     const mainImage = document.getElementById("mainImage");
     const thumbnails = document.getElementById("thumbnails");
+    const prevBtn = document.getElementById("prevImage");
+    const nextBtn = document.getElementById("nextImage");
 
     let images = [];
     if (item.images && item.images.length > 0) {
@@ -81,26 +141,72 @@
       images = [item.image];
     }
 
-    if (images.length > 0) {
-      mainImage.innerHTML = `<img src="${images[0]}" alt="${item.title}">`;
-      thumbnails.innerHTML = images
-        .map(
-          img =>
-            `<div class="thumbnail"><img src="${img}" alt="${item.title}"></div>`
-        )
-        .join("");
+    let currentIndex = 0;
 
-      // Add click event for thumbnails
-      document.querySelectorAll(".thumbnail img").forEach(imgEl => {
-        imgEl.addEventListener("click", () => {
-          mainImage.innerHTML = `<img src="${imgEl.src}" alt="${item.title}">`;
-        });
+    const toggleChrome = show => {
+      [prevBtn, nextBtn].forEach(btn => {
+        if (!btn) return;
+        btn.classList.toggle("is-hidden", !show);
       });
+      thumbnails.classList.toggle("is-hidden", !show);
+    };
+
+    const renderMainImage = () => {
+      const currentSrc = images[currentIndex];
+      mainImage.innerHTML = currentSrc
+        ? `<img src="${currentSrc}" alt="${item.title}" class="fade-image">`
+        : "No Image";
+
+      const imgEl = mainImage.querySelector("img");
+      if (imgEl) {
+        requestAnimationFrame(() => imgEl.classList.add("visible"));
+      }
+
+      document.querySelectorAll(".thumbnail").forEach((thumb, index) => {
+        thumb.classList.toggle("active", index === currentIndex);
+      });
+    };
+
+    if (images.length > 0) {
+      const hasCarousel = images.length > 1;
+
+      if (hasCarousel) {
+        thumbnails.innerHTML = images
+          .map(
+            (img, index) =>
+              `<button class="thumbnail" type="button" aria-label="View image ${index + 1}"><img src="${img}" alt="${item.title}"></button>`
+          )
+          .join("");
+
+        document.querySelectorAll(".thumbnail").forEach((btn, index) => {
+          btn.addEventListener("click", () => {
+            currentIndex = index;
+            renderMainImage();
+          });
+        });
+
+        const moveCarousel = direction => {
+          currentIndex = (currentIndex + direction + images.length) % images.length;
+          renderMainImage();
+        };
+
+        if (prevBtn && nextBtn) {
+          prevBtn.addEventListener("click", () => moveCarousel(-1));
+          nextBtn.addEventListener("click", () => moveCarousel(1));
+        }
+
+        toggleChrome(true);
+      } else {
+        toggleChrome(false);
+      }
+
+      renderMainImage();
     } else {
       mainImage.textContent = "No Image";
+      thumbnails.innerHTML = "";
+      toggleChrome(false);
     }
 
-    // Map preview
     const map = document.getElementById("mapPreview");
     if (item.map && item.map.includes("iframe")) {
       map.innerHTML = item.map;
@@ -108,7 +214,6 @@
       map.textContent = "[No map provided]";
     }
 
-    // Store seller info for messaging
     localStorage.setItem("sellerEmail", item.sellerEmail || item.seller);
   }
 
@@ -124,41 +229,92 @@
     }
   }
 
-  // ✅ NEW FUNCTION — Message Seller directly
   function messageSeller() {
     const seller = localStorage.getItem("sellerEmail");
-    const currentUser = localStorage.getItem("loggedInUserId");
+    const sellerName = localStorage.getItem("sellerName") || seller;
+    const sellerPic = localStorage.getItem("sellerProfilePic") || "";
+    const currentUser =
+      JSON.parse(localStorage.getItem("userProfile")) ||
+      JSON.parse(localStorage.getItem("loggedInUser"));
 
-    if (!currentUser) {
+    if (!currentUser || !currentUser.email) {
       alert("Please log in to message the seller.");
+      localStorage.setItem("redirectAfterLogin", "itemdetails.html");
       window.location.href = "login_signup.html";
       return;
     }
 
-    if (seller === currentUser) {
+    if (seller === currentUser.email) {
       alert("You can’t message yourself!");
       return;
     }
 
-    // Store chat target and go to messages
+    ensureUserStub(seller, sellerName, sellerPic);
+    bootstrapConversation(currentUser.email, seller, sellerName, sellerPic);
+    localStorage.setItem(
+      "openChatMeta",
+      JSON.stringify({ email: seller, name: sellerName, profilePic: sellerPic })
+    );
     localStorage.setItem("openChatWith", seller);
     window.location.href = "messages.html";
   }
 
-  function viewSellerProfile() {
-  const sellerEmail = localStorage.getItem("sellerEmail");
-  if (!sellerEmail) {
-    alert("Seller profile not available.");
-    return;
-  }
-  localStorage.setItem("selectedSellerId", sellerEmail);
-  window.location.href = "profile.html";
-}
+  function bootstrapConversation(current, partner, partnerName, partnerPic = "") {
+    const store = JSON.parse(localStorage.getItem("conversations")) || {};
+    if (!store[current]) store[current] = {};
+    if (!store[partner]) store[partner] = {};
 
+    const currentUser =
+      JSON.parse(localStorage.getItem("userProfile")) ||
+      JSON.parse(localStorage.getItem("loggedInUser")) ||
+      { email: current };
+
+    if (!store[current][partner]) {
+      store[current][partner] = {
+        partnerEmail: partner,
+        partnerName: partnerName || partner,
+        profilePic: partnerPic,
+        messages: []
+      };
+    }
+
+    if (!store[partner][current]) {
+      store[partner][current] = {
+        partnerEmail: current,
+        partnerName: currentUser.name || currentUser.email || current,
+        profilePic: currentUser.profilePic || "",
+        messages: []
+      };
+    }
+
+    localStorage.setItem("conversations", JSON.stringify(store));
+  }
+
+  function ensureUserStub(email, name, profilePic) {
+    if (!email) return;
+    const users = JSON.parse(localStorage.getItem("users")) || [];
+    const idx = users.findIndex(u => u.email === email);
+    if (idx === -1) {
+      users.push({ email, name: name || email, profilePic });
+    } else {
+      if (name && !users[idx].name) users[idx].name = name;
+      if (profilePic && !users[idx].profilePic) users[idx].profilePic = profilePic;
+    }
+    localStorage.setItem("users", JSON.stringify(users));
+  }
+
+  function viewSellerProfile() {
+    const sellerEmail = localStorage.getItem("sellerEmail");
+    if (!sellerEmail) {
+      alert("Seller profile not available.");
+      return;
+    }
+    localStorage.setItem("selectedSellerId", sellerEmail);
+    window.location.href = "profile.html";
+  }
 
   loadItemDetails();
 </script>
-
 
 </body>
 </html>

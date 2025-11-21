@@ -4,252 +4,83 @@
   <meta charset="UTF-8">
   <title>University Marketplace</title>
   <link rel="stylesheet" href="styles.css">
-
-  <style>
-    /* --- Layout --- */
-    .main-content {
-      display: flex;
-      gap: 20px;
-      padding: 20px;
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            ucfBlack: '#000000',
+            ucfGold: '#ba9b37',
+            ucfGray: '#1b1b1b'
+          },
+          fontFamily: {
+            sans: ['Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'sans-serif']
+          }
+        }
+      }
     }
-
-    .sidebar {
-      width: 260px;
-      background: #f9f9f9;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
-      position: sticky;
-      top: 80px;
-      height: fit-content;
-    }
-
-    .sidebar h3 {
-      margin-bottom: 15px;
-      color: #333;
-    }
-
-    .filter-section {
-      margin-bottom: 20px;
-    }
-
-    .filter-section h4 {
-      margin-bottom: 8px;
-      font-size: 15px;
-      color: #444;
-    }
-
-    .filter-section input,
-    .filter-section select {
-      width: 100%;
-      padding: 8px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-      font-size: 14px;
-    }
-
-    .price-inputs {
-      display: flex;
-      gap: 10px;
-    }
-
-    .sidebar button {
-      width: 100%;
-      padding: 10px;
-      border: none;
-      border-radius: 6px;
-      color: white;
-      font-weight: bold;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-
-    #searchFilters {
-      background: #28a745;
-      margin-bottom: 10px;
-    }
-
-    #searchFilters:hover {
-      background: #218838;
-    }
-
-    #resetFilters {
-      background: #007bff;
-    }
-
-    #resetFilters:hover {
-      background: #0056b3;
-    }
-
-    /* === Marketplace Grid === */
-    .marketplace-wrapper {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-    }
-
-    #resultCount {
-      font-weight: 600;
-      color: #333;
-      margin-bottom: 15px;
-    }
-
-    .items-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-      gap: 20px;
-    }
-
-    .item-card {
-      background: white;
-      border-radius: 8px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-      overflow: hidden;
-      transition: transform 0.2s;
-      cursor: pointer;
-    }
-
-    .item-card:hover {
-      transform: translateY(-5px);
-    }
-
-    .item-card img {
-      width: 100%;
-      height: 160px;
-      object-fit: cover;
-    }
-
-    .item-details {
-      padding: 10px;
-    }
-
-    /* --- Smart Dropdown --- */
-    .dropdown-container {
-      position: relative;
-    }
-
-    .dropdown-container input {
-      width: 100%;
-      padding: 8px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      font-size: 14px;
-    }
-
-    .dropdown-list {
-      position: absolute;
-      top: 105%;
-      left: 0;
-      right: 0;
-      background: white;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      max-height: 200px;
-      overflow-y: auto;
-      z-index: 10;
-      display: none;
-    }
-
-    .dropdown-list li {
-      padding: 8px;
-      cursor: pointer;
-      transition: background-color 0.2s;
-    }
-
-    .dropdown-list li:hover {
-      background-color: #e8f0ff;
-    }
-
-    /* --- Search Input --- */
-    .search-container {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      margin-left: 20px;
-    }
-
-    .search-input {
-      padding: 6px 12px;
-      border-radius: 20px;
-      border: 1px solid #ccc;
-      font-size: 14px;
-      width: 250px;
-    }
-
-    .search-btn {
-      background: #007bff;
-      border: none;
-      color: white;
-      padding: 6px 12px;
-      border-radius: 50%;
-      cursor: pointer;
-      font-size: 16px;
-      transition: background 0.2s;
-    }
-
-    .search-btn:hover {
-      background: #005ecb;
-    }
-
-    mark {
-      background-color: #ffec99;
-      padding: 0 2px;
-      border-radius: 3px;
-    }
-  </style>
+  </script>
 </head>
 
-<body>
+<body class="bg-neutral-50 text-neutral-900 font-sans">
 
 <header class="top-bar">
-  <div class="logo-title">🏫 University Marketplace</div>
+  <div class="brand-group">
+    <div class="brand-logo">U</div>
+    <div class="logo-title text-lg font-semibold text-neutral-900">University Marketplace</div>
+  </div>
 
-  <nav class="nav-bubbles">
+  <nav class="nav-bubbles" aria-label="Main navigation">
     <a href="messages.html" class="nav-bubble">💬 Messages</a>
     <a href="index.html" class="nav-bubble active">🛒 Marketplace</a>
     <a href="seller-dashboard.html" class="nav-bubble">📋 My Listings</a>
-    <a href="postitem.html" class="nav-bubble">➕ Sell Item</a>
+    <a href="postitem.html" class="nav-bubble sell-button">➕ Sell Item</a>
   </nav>
 
-  <div class="search-container">
-    <input type="text" id="searchBar" class="search-input" placeholder="Search Marketplace...">
-    <button id="searchBtn" class="search-btn">🔍</button>
-  </div>
-
-  <div class="top-right">
-    <a href="notifications.html" class="icon-bubble">🔔 Notifications</a>
-    <a href="profile.html" class="icon-bubble">👤 Profile</a>
+  <div class="top-actions">
+    <div class="search-container">
+      <input type="text" id="searchBar" class="search-input" placeholder="Search Marketplace...">
+      <button id="searchBtn" class="search-btn">🔍</button>
+    </div>
+    <div class="top-icons">
+      <a href="notifications.html" class="icon-bubble" aria-label="Notifications">🔔</a>
+      <a href="profile.html" class="icon-bubble" aria-label="Profile">👤</a>
+    </div>
   </div>
 </header>
 
-<div class="main-content">
+<main class="max-w-7xl mx-auto px-4 py-8 flex flex-col lg:flex-row gap-6">
 
   <!-- Sidebar -->
-  <aside class="sidebar">
-    <h3>Filters</h3>
+  <aside class="sidebar w-full lg:w-72 bg-white shadow-sm border border-neutral-200 rounded-2xl p-5 space-y-5 sticky top-28">
+    <div class="flex items-center justify-between">
+      <h3 class="text-lg font-semibold text-neutral-900">Filters</h3>
+      <span class="text-xs text-neutral-500">UCF inspired</span>
+    </div>
 
     <!-- Category Smart Dropdown -->
-    <div class="filter-section">
-      <h4>Category</h4>
+    <div class="filter-section space-y-2">
+      <h4 class="text-sm font-medium text-neutral-700">Category</h4>
       <div class="dropdown-container">
-        <input type="text" id="categorySearch" placeholder="Type or select category..." autocomplete="off">
+        <input type="text" id="categorySearch" placeholder="Type or select category..." autocomplete="off" class="w-full rounded-xl border border-neutral-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ucfGold focus:border-transparent">
         <ul id="categoryList" class="dropdown-list"></ul>
       </div>
     </div>
 
     <!-- Price Filter -->
-    <div class="filter-section">
-      <h4>Price Range ($)</h4>
+    <div class="filter-section space-y-2">
+      <h4 class="text-sm font-medium text-neutral-700">Price Range ($)</h4>
       <div class="price-inputs">
-        <input type="number" id="minPrice" placeholder="Min">
-        <input type="number" id="maxPrice" placeholder="Max">
+        <input type="number" id="minPrice" placeholder="Min" class="w-full rounded-xl border border-neutral-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ucfGold focus:border-transparent">
+        <input type="number" id="maxPrice" placeholder="Max" class="w-full rounded-xl border border-neutral-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ucfGold focus:border-transparent">
       </div>
     </div>
 
     <!-- Building / Dorm -->
-    <div class="filter-section">
-      <h4>Building / Dorm</h4>
-      <select id="buildingFilter">
+    <div class="filter-section space-y-2">
+      <h4 class="text-sm font-medium text-neutral-700">Building / Dorm</h4>
+      <select id="buildingFilter" class="w-full rounded-xl border border-neutral-200 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-ucfGold focus:border-transparent">
         <option value="">All</option>
         <option>Current Orlando</option>
         <option>Arden Villas</option>
@@ -267,9 +98,9 @@
     </div>
 
     <!-- Rating -->
-    <div class="filter-section">
-      <h4>Seller Rating</h4>
-      <select id="ratingFilter">
+    <div class="filter-section space-y-2">
+      <h4 class="text-sm font-medium text-neutral-700">Seller Rating</h4>
+      <select id="ratingFilter" class="w-full rounded-xl border border-neutral-200 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-ucfGold focus:border-transparent">
         <option value="">All</option>
         <option value="4">4★ & up</option>
         <option value="3">3★ & up</option>
@@ -278,16 +109,51 @@
     </div>
 
     <!-- Buttons -->
-    <button id="searchFilters">Search</button>
-    <button id="resetFilters">Reset Filters</button>
+    <div class="space-y-2">
+      <button id="searchFilters" class="w-full rounded-xl bg-ucfGold text-black font-semibold py-2.5 transition hover:bg-ucfGold/90">Search</button>
+      <button id="resetFilters" class="w-full rounded-xl bg-ucfGray text-white font-semibold py-2.5 transition hover:bg-ucfGray/90">Reset Filters</button>
+    </div>
   </aside>
 
   <!-- Marketplace Wrapper -->
-  <div class="marketplace-wrapper">
-    <div id="resultCount"></div>
+  <div class="marketplace-wrapper flex-1 space-y-4">
+    <div class="flex items-center justify-between flex-wrap gap-3">
+      <h2 class="text-2xl font-semibold text-neutral-900">Marketplace</h2>
+      <a href="postitem.html" class="inline-flex items-center gap-2 rounded-full bg-ucfGold text-black font-semibold px-4 py-2 shadow-sm hover:bg-ucfGold/90 transition">➕ Post item</a>
+    </div>
+
+    <div class="rounded-2xl border border-neutral-200 bg-white/90 p-4 shadow-sm">
+      <h3 class="text-base font-semibold text-neutral-900">Primeros pasos</h3>
+      <p class="mt-1 text-sm text-neutral-600">Publica un artículo o encuentra gangas cerca del campus usando los filtros inteligentes.</p>
+      <div class="mt-3 grid gap-3 sm:grid-cols-3">
+        <div class="flex items-start gap-2">
+          <span class="flex h-8 w-8 items-center justify-center rounded-full bg-ucfGold/15 text-sm font-semibold text-ucfGray">1</span>
+          <div>
+            <p class="text-sm font-semibold text-neutral-900">Explora con la búsqueda</p>
+            <p class="text-xs text-neutral-600">Escribe palabras clave y combina filtros de precio, edificio y rating.</p>
+          </div>
+        </div>
+        <div class="flex items-start gap-2">
+          <span class="flex h-8 w-8 items-center justify-center rounded-full bg-ucfGold/15 text-sm font-semibold text-ucfGray">2</span>
+          <div>
+            <p class="text-sm font-semibold text-neutral-900">Revisa los detalles</p>
+            <p class="text-xs text-neutral-600">Cada tarjeta muestra precio, ubicación y categoría; haz clic para ver más.</p>
+          </div>
+        </div>
+        <div class="flex items-start gap-2">
+          <span class="flex h-8 w-8 items-center justify-center rounded-full bg-ucfGold/15 text-sm font-semibold text-ucfGray">3</span>
+          <div>
+            <p class="text-sm font-semibold text-neutral-900">Publica lo tuyo</p>
+            <p class="text-xs text-neutral-600">Usa “Post item” para listar rápido con fotos y datos de tu dorm.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="resultCount" class="text-sm text-neutral-600"></div>
     <div class="items-grid" id="marketplaceGrid"></div>
   </div>
-</div>
+</main>
 
   
 
@@ -383,26 +249,38 @@ function loadMarketplace() {
   resultCount.textContent = `${filtered.length} item${filtered.length !== 1 ? "s" : ""} found`;
 
   if (filtered.length === 0) {
-    grid.innerHTML = "<p>No items found with selected filters.</p>";
+    grid.innerHTML = `
+      <div class="col-span-full rounded-2xl border border-dashed border-neutral-300 bg-white/70 p-6 text-center text-sm text-neutral-700">
+        <p class="font-semibold text-neutral-900">No encontramos artículos con esos filtros.</p>
+        <p class="mt-1">Ajusta la búsqueda o <a href="postitem.html" class="font-semibold text-ucfGold hover:underline">publica el tuyo</a> para que otros lo vean.</p>
+      </div>
+    `;
     return;
   }
 
   const highlight = (text, query) => {
     if (!query) return text;
-    const regex = new RegExp(`(${query})`, "ig");
+    const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const regex = new RegExp(`(${escaped})`, "ig");
     return text.replace(regex, "<mark>$1</mark>");
   };
 
   filtered.forEach(item => {
     const card = document.createElement("div");
-    card.classList.add("item-card");
+    card.className = "item-card group relative bg-white rounded-2xl border border-neutral-200 shadow-sm overflow-hidden transition hover:-translate-y-1 hover:shadow-lg cursor-pointer";
     const img = (item.images && item.images[0]) || "https://via.placeholder.com/250x160";
     const highlightedTitle = highlight(item.title, searchQuery);
     card.innerHTML = `
-      <img src="${img}" alt="${item.title}">
-      <div class="item-details">
-        <strong>${highlightedTitle}</strong>
-        <p>$${item.price} • ${item.building || item.address || "N/A"}</p>
+      <div class="listing-image-container">
+        <img src="${img}" alt="${item.title}" class="marketplace-image transition duration-200 group-hover:scale-105">
+      </div>
+      <div class="item-details p-4 space-y-2">
+        <div class="flex items-start justify-between gap-3">
+          <strong class="text-base text-neutral-900 leading-snug">${highlightedTitle}</strong>
+          <span class="text-ucfGold font-semibold">$${item.price}</span>
+        </div>
+        <p class="text-sm text-neutral-600">${item.building || item.address || "N/A"}</p>
+        <p class="text-xs text-neutral-500">${item.category || ""}</p>
       </div>
     `;
     card.addEventListener("click", () => {
