@@ -98,9 +98,6 @@
 <script>
   const getUsers = () => JSON.parse(localStorage.getItem("users")) || [];
   const getUserByEmail = email => getUsers().find(u => u.email === email) || null;
-  const conversationKey = email => `conversationList:${email}`;
-  const getConversationList = email => JSON.parse(localStorage.getItem(conversationKey(email))) || [];
-  const saveConversationList = (email, list) => localStorage.setItem(conversationKey(email), JSON.stringify(list || []));
 
   function loadItemDetails() {
     const itemId = localStorage.getItem("selectedItemId");
@@ -121,16 +118,6 @@
     if (locationDetail) {
       locationDetail.textContent = "📍 " + (item.address || item.zipcode || "N/A");
     }
-
-    const sellerProfile = getUserByEmail(item.sellerEmail) || {};
-    const sellerPic = sellerProfile.profilePic || item.sellerProfilePic || "";
-    const sellerName = sellerProfile.name || item.sellerName || item.sellerEmail || item.seller || "Seller";
-    localStorage.setItem("sellerName", sellerName);
-    localStorage.setItem("sellerMajor", sellerProfile.major || item.sellerMajor || "");
-    localStorage.setItem("sellerResidence", sellerProfile.residence || item.sellerResidence || "");
-    localStorage.setItem("sellerGradYear", sellerProfile.gradYear || item.sellerGradYear || "");
-    ensureUserStub(item.sellerEmail, sellerName, sellerPic);
-    localStorage.setItem("sellerProfilePic", sellerPic || "");
 
     const mainImage = document.getElementById("mainImage");
     const thumbnails = document.getElementById("thumbnails");
@@ -235,7 +222,6 @@
   function messageSeller() {
     const seller = localStorage.getItem("sellerEmail");
     const sellerName = localStorage.getItem("sellerName") || seller;
-    const sellerPic = localStorage.getItem("sellerProfilePic") || "";
     const currentUser =
       JSON.parse(localStorage.getItem("userProfile")) ||
       JSON.parse(localStorage.getItem("loggedInUser"));
@@ -252,53 +238,8 @@
       return;
     }
 
-    ensureUserStub(seller, sellerName, sellerPic);
-    bootstrapConversation(currentUser, seller, sellerName, sellerPic);
-    localStorage.setItem(
-      "openChatMeta",
-      JSON.stringify({ email: seller, name: sellerName, profilePic: sellerPic })
-    );
     localStorage.setItem("openChatWith", seller);
     window.location.href = "messages.html";
-  }
-
-  function ensureConversation(ownerEmail, partnerEmail, meta = {}) {
-    const list = getConversationList(ownerEmail);
-    const existing = list.find(c => c.chatWithEmail === partnerEmail);
-    if (!existing) {
-      list.push({
-        chatWithEmail: partnerEmail,
-        chatWithName: meta.name || partnerEmail,
-        profilePic: meta.profilePic || "",
-        messages: []
-      });
-    } else {
-      existing.chatWithName = meta.name || existing.chatWithName || partnerEmail;
-      existing.profilePic = meta.profilePic || existing.profilePic;
-    }
-    saveConversationList(ownerEmail, list);
-  }
-
-  function bootstrapConversation(currentUser, partnerEmail, partnerName, partnerPic = "") {
-    const partnerMeta = { name: partnerName || partnerEmail, profilePic: partnerPic };
-    ensureConversation(currentUser.email, partnerEmail, partnerMeta);
-    ensureConversation(partnerEmail, currentUser.email, {
-      name: currentUser.name || currentUser.email,
-      profilePic: currentUser.profilePic || ""
-    });
-  }
-
-  function ensureUserStub(email, name, profilePic) {
-    if (!email) return;
-    const users = JSON.parse(localStorage.getItem("users")) || [];
-    const idx = users.findIndex(u => u.email === email);
-    if (idx === -1) {
-      users.push({ email, name: name || email, profilePic });
-    } else {
-      if (name && !users[idx].name) users[idx].name = name;
-      if (profilePic && !users[idx].profilePic) users[idx].profilePic = profilePic;
-    }
-    localStorage.setItem("users", JSON.stringify(users));
   }
 
   function viewSellerProfile() {

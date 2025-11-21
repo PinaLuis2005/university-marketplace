@@ -72,27 +72,6 @@ body {
   line-height: 1.5;
 }
 
-.profile-meta {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 12px;
-  margin: 6px 0 4px;
-}
-
-.meta-tile {
-  background: #f8fafc;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 10px 12px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.04);
-}
-
-.meta-tile strong {
-  display: block;
-  margin-top: 4px;
-  color: #0f172a;
-}
-
 .action-buttons {
   display: flex;
   flex-wrap: wrap;
