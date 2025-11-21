@@ -119,16 +119,6 @@
       locationDetail.textContent = "📍 " + (item.address || item.zipcode || "N/A");
     }
 
-    const sellerProfile = getUserByEmail(item.sellerEmail) || {};
-    const sellerPic = sellerProfile.profilePic || item.sellerProfilePic || "";
-    const sellerName = sellerProfile.name || item.sellerName || item.sellerEmail || item.seller || "Seller";
-    localStorage.setItem("sellerName", sellerName);
-    localStorage.setItem("sellerMajor", sellerProfile.major || item.sellerMajor || "");
-    localStorage.setItem("sellerResidence", sellerProfile.residence || item.sellerResidence || "");
-    localStorage.setItem("sellerGradYear", sellerProfile.gradYear || item.sellerGradYear || "");
-    ensureUserStub(item.sellerEmail, sellerName, sellerPic);
-    localStorage.setItem("sellerProfilePic", sellerPic || "");
-
     const mainImage = document.getElementById("mainImage");
     const thumbnails = document.getElementById("thumbnails");
     const prevBtn = document.getElementById("prevImage");
@@ -232,7 +222,6 @@
   function messageSeller() {
     const seller = localStorage.getItem("sellerEmail");
     const sellerName = localStorage.getItem("sellerName") || seller;
-    const sellerPic = localStorage.getItem("sellerProfilePic") || "";
     const currentUser =
       JSON.parse(localStorage.getItem("userProfile")) ||
       JSON.parse(localStorage.getItem("loggedInUser"));
@@ -249,58 +238,8 @@
       return;
     }
 
-    ensureUserStub(seller, sellerName, sellerPic);
-    bootstrapConversation(currentUser.email, seller, sellerName, sellerPic);
-    localStorage.setItem(
-      "openChatMeta",
-      JSON.stringify({ email: seller, name: sellerName, profilePic: sellerPic })
-    );
     localStorage.setItem("openChatWith", seller);
     window.location.href = "messages.html";
-  }
-
-  function bootstrapConversation(current, partner, partnerName, partnerPic = "") {
-    const store = JSON.parse(localStorage.getItem("conversations")) || {};
-    if (!store[current]) store[current] = {};
-    if (!store[partner]) store[partner] = {};
-
-    const currentUser =
-      JSON.parse(localStorage.getItem("userProfile")) ||
-      JSON.parse(localStorage.getItem("loggedInUser")) ||
-      { email: current };
-
-    if (!store[current][partner]) {
-      store[current][partner] = {
-        partnerEmail: partner,
-        partnerName: partnerName || partner,
-        profilePic: partnerPic,
-        messages: []
-      };
-    }
-
-    if (!store[partner][current]) {
-      store[partner][current] = {
-        partnerEmail: current,
-        partnerName: currentUser.name || currentUser.email || current,
-        profilePic: currentUser.profilePic || "",
-        messages: []
-      };
-    }
-
-    localStorage.setItem("conversations", JSON.stringify(store));
-  }
-
-  function ensureUserStub(email, name, profilePic) {
-    if (!email) return;
-    const users = JSON.parse(localStorage.getItem("users")) || [];
-    const idx = users.findIndex(u => u.email === email);
-    if (idx === -1) {
-      users.push({ email, name: name || email, profilePic });
-    } else {
-      if (name && !users[idx].name) users[idx].name = name;
-      if (profilePic && !users[idx].profilePic) users[idx].profilePic = profilePic;
-    }
-    localStorage.setItem("users", JSON.stringify(users));
   }
 
   function viewSellerProfile() {

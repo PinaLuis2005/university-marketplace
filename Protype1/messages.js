@@ -24,85 +24,68 @@ function getCurrentUser() {
   return users.find(u => u.email === id) || null;
 }
 
-function mapLegacyMessage(msg) {
-  return {
-    sender: msg.from || msg.sender || msg.author || msg.email || "",
-    type: msg.type === "photo" ? "image" : msg.type || "text",
-    content: msg.content || msg.text || msg.src || msg.value || "",
-    text: msg.text || msg.content || msg.src || "",
-    time: msg.time,
-    timestamp: msg.timestamp || Date.now()
-  };
+function getConversations() {
+  return JSON.parse(localStorage.getItem(CONVERSATION_KEY)) || [];
 }
 
-function migrateStoreToEmailMap(userEmail) {
-  const raw = JSON.parse(localStorage.getItem(CONVERSATION_KEY));
-  let store = raw && typeof raw === "object" ? raw : {};
-
-  if (Array.isArray(raw) || raw?.conversations) {
-    const legacyList = Array.isArray(raw)
-      ? raw
-      : Object.values(raw.conversations || {});
-    store = {};
-    legacyList.forEach(convo => {
-      const participants = convo.participants || [];
-      if (participants.length < 2) return;
-      participants.forEach(owner => {
-        const partner = participants.find(p => p !== owner);
-        if (!partner) return;
-        if (!store[owner]) store[owner] = {};
-        store[owner][partner] = {
-          partnerEmail: partner,
-          partnerName: convo.labels?.[partner] || partner,
-          messages: (convo.messages || []).map(mapLegacyMessage)
-        };
-      });
-    });
-    localStorage.setItem(CONVERSATION_KEY, JSON.stringify(store));
-  }
-
-  // Seed legacy inline user messages
-  if (!store[userEmail]) {
-    const userRecord = getUserByEmail(userEmail);
-    const legacy = userRecord?.messages || [];
-    if (legacy.length) {
-      store[userEmail] = {};
-      legacy.forEach(conv => {
-        store[userEmail][conv.with] = {
-          partnerEmail: conv.with,
-          partnerName: conv.with,
-          messages: (conv.chat || []).map(mapLegacyMessage)
-        };
-      });
-      localStorage.setItem(CONVERSATION_KEY, JSON.stringify(store));
-    }
-  }
-
-  return store;
+function saveConversations(data) {
+  localStorage.setItem(CONVERSATION_KEY, JSON.stringify(data));
 }
 
-function getConversationMap(userEmail) {
-  const store = migrateStoreToEmailMap(userEmail);
-  return store[userEmail] || {};
+function conversationKey(a, b) {
+  return [a, b].sort().join("::");
 }
 
-function saveConversationMap(userEmail, map) {
-  const store = migrateStoreToEmailMap(userEmail);
-  store[userEmail] = map;
-  localStorage.setItem(CONVERSATION_KEY, JSON.stringify(store));
-}
+function ensureConversation(userEmail, partnerEmail, partnerName) {
+  let convos = getConversations();
+  const key = conversationKey(userEmail, partnerEmail);
+  let convo = convos.find(c => c.key === key);
 
-function ensureUserRecord(email, name, profilePic) {
-  if (!email) return;
-  const users = getUsers();
-  const idx = users.findIndex(u => u.email === email);
-  if (idx === -1) {
-    users.push({ email, name: name || email, profilePic });
+  if (!convo) {
+    convo = {
+      key,
+      participants: [userEmail, partnerEmail],
+      labels: { [partnerEmail]: partnerName || partnerEmail },
+      messages: []
+    };
+    convos.push(convo);
   } else {
-    if (name && !users[idx].name) users[idx].name = name;
-    if (profilePic && !users[idx].profilePic) users[idx].profilePic = profilePic;
+    convo.labels = convo.labels || {};
+    if (partnerName) convo.labels[partnerEmail] = partnerName;
   }
-  saveUsers(users);
+
+  saveConversations(convos);
+  return convo;
+}
+
+function seedLegacyConversations(user) {
+  const legacy = user.messages || [];
+  if (!legacy.length) return;
+
+  let convos = getConversations();
+  let changed = false;
+
+  legacy.forEach(conv => {
+    const key = conversationKey(user.email, conv.with);
+    if (convos.some(c => c.key === key)) return;
+    const mapped = (conv.chat || []).map(msg => ({
+      from: msg.from,
+      type: msg.type || "text",
+      content: msg.content || msg.text,
+      text: msg.text || msg.content,
+      time: msg.time,
+      timestamp: msg.timestamp || Date.now()
+    }));
+    convos.push({
+      key,
+      participants: [user.email, conv.with],
+      labels: { [conv.with]: conv.with },
+      messages: mapped
+    });
+    changed = true;
+  });
+
+  if (changed) saveConversations(convos);
 }
 
 // Ensure user logged in
@@ -111,10 +94,7 @@ if (!activeUser) {
   window.location.href = "login_signup.html";
 }
 
-if (activeUser) {
-  ensureUserRecord(activeUser.email, activeUser.name, activeUser.profilePic);
-  migrateStoreToEmailMap(activeUser.email);
-}
+if (activeUser) seedLegacyConversations(activeUser);
 
 // --- UI Elements ---
 const chatList = document.getElementById("chatList");
@@ -124,36 +104,16 @@ const messageInput = document.getElementById("messageInput");
 const sendBtn = document.getElementById("sendBtn");
 const voiceBtn = document.getElementById("voiceBtn");
 const photoBtn = document.getElementById("photoBtn");
-const videoBtn = document.getElementById("videoBtn");
 const photoInput = document.getElementById("photoInput");
-const videoInput = document.getElementById("videoInput");
 
 let currentChatPartner = null;
 
 function resolveName(email, convo) {
-  const partner = getUserByEmail(email);
-  if (partner?.name) return partner.name;
-  if (convo?.partnerName) return convo.partnerName;
-  return email || "Unknown user";
-}
-
-function formatTime(ts) {
-  if (!ts) return "";
-  const d = new Date(ts);
-  return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-}
-
-function ensureConversation(ownerEmail, partnerEmail, meta = {}) {
-  if (!ownerEmail || !partnerEmail) return null;
-  const map = getConversationMap(ownerEmail);
-  const partnerRecord = getUserByEmail(partnerEmail);
-  const entry = map[partnerEmail] || { partnerEmail, messages: [] };
-  entry.partnerName = meta.name || entry.partnerName || partnerRecord?.name || partnerEmail;
-  entry.profilePic = meta.profilePic || entry.profilePic || partnerRecord?.profilePic;
-  map[partnerEmail] = entry;
-  saveConversationMap(ownerEmail, map);
-  ensureUserRecord(partnerEmail, entry.partnerName, entry.profilePic);
-  return entry;
+  const users = getUsers();
+  const found = users.find(u => u.email === email);
+  if (found && found.name) return found.name;
+  if (convo?.labels && convo.labels[email]) return convo.labels[email];
+  return email;
 }
 
 // --- Load pending chat (from profile or itemdetails) ---
@@ -161,8 +121,8 @@ const pendingChat = localStorage.getItem("openChatWith");
 const pendingMeta = localStorage.getItem("openChatMeta");
 if (pendingChat && activeUser) {
   const meta = pendingMeta ? JSON.parse(pendingMeta) : {};
-  ensureConversation(activeUser.email, pendingChat, meta);
-  openChat(pendingChat, meta.name || pendingChat);
+  ensureConversation(activeUser.email, pendingChat, meta.name || pendingChat);
+  openChat(pendingChat, meta.name);
   localStorage.removeItem("openChatWith");
   localStorage.removeItem("openChatMeta");
 }
@@ -173,56 +133,24 @@ function loadChatList() {
   if (!user) return;
   chatList.innerHTML = "";
 
-  const convMap = getConversationMap(user.email);
-  const entries = Object.entries(convMap);
+  const convos = getConversations().filter(c => c.participants.includes(user.email));
 
-  if (!entries.length) {
+  if (convos.length === 0) {
     chatList.innerHTML = "<li class='conversation-item muted'>No conversations yet.</li>";
     return;
   }
 
-  entries
-    .sort(([, a], [, b]) => {
-      const lastA = a.messages?.at(-1)?.timestamp || 0;
-      const lastB = b.messages?.at(-1)?.timestamp || 0;
-      return lastB - lastA;
-    })
-    .forEach(([partnerEmail, convo]) => {
-      const lastMsg = (convo.messages || []).at(-1);
-      const preview = lastMsg
-        ? lastMsg.type === "image"
-          ? "📷 Image"
-          : lastMsg.type === "video"
-            ? "🎥 Video"
-            : lastMsg.type === "voice"
-              ? "🎤 Voice message"
-              : (lastMsg.content || lastMsg.text || "").slice(0, 50)
-        : "No messages";
-      const li = document.createElement("li");
-      li.className = "conversation-item";
-      li.dataset.partner = partnerEmail;
-      const partnerName = resolveName(partnerEmail, convo);
-      li.dataset.partnerName = partnerName;
-      const avatar = convo.profilePic || getUserByEmail(partnerEmail)?.profilePic || "";
-      const initial = (partnerName || partnerEmail || "?").charAt(0).toUpperCase();
-      li.innerHTML = `
-        <div style="display:flex;gap:10px;align-items:center;">
-          <div class="chat-avatar" style="width:40px;height:40px;border-radius:50%;background:#f2f2f2;overflow:hidden;display:flex;align-items:center;justify-content:center;font-weight:700;">
-            ${avatar ? `<img src="${avatar}" alt="${partnerName}" style="width:100%;height:100%;object-fit:cover;">` : initial}
-          </div>
-          <div style="flex:1 1 auto;min-width:0;">
-            <div class="name-row" style="display:flex;justify-content:space-between;gap:6px;">
-              <div class="name" style="font-weight:600;">${partnerName}</div>
-              <div class="time" style="font-size:12px;opacity:0.7;">${formatTime(lastMsg?.timestamp)}</div>
-            </div>
-            <div class="preview" style="font-size:13px;opacity:0.85;">${preview}</div>
-          </div>
-        </div>
-      `;
-      li.addEventListener("click", () => openChat(partnerEmail, partnerName));
-      if (currentChatPartner === partnerEmail) li.classList.add("active");
-      chatList.appendChild(li);
-    });
+  convos.forEach(conv => {
+    const li = document.createElement("li");
+    li.className = "conversation-item";
+    const lastMsg = conv.chat?.at(-1);
+    li.innerHTML = `
+      <div class="name">${conv.with}</div>
+      <div class="preview">${lastMsg ? lastMsg.text.slice(0, 50) : "No messages"}</div>
+    `;
+    li.addEventListener("click", () => openChat(conv.with));
+    chatList.appendChild(li);
+  });
 }
 
 // --- Open Chat ---
@@ -230,15 +158,16 @@ function openChat(partnerEmail, partnerName) {
   const user = getCurrentUser();
   if (!user) return;
 
-  ensureConversation(user.email, partnerEmail, { name: partnerName });
+  ensureConversation(user.email, partnerEmail, partnerName);
   currentChatPartner = partnerEmail;
-
   Array.from(chatList.children).forEach(li => {
-    li.classList.toggle("active", li.dataset.partner === partnerEmail);
+    if (li.textContent.includes(partnerEmail)) {
+      li.classList.add("active");
+    } else {
+      li.classList.remove("active");
+    }
   });
-
-  const conv = getConversationMap(user.email)[partnerEmail];
-  chatHeader.textContent = `Chat with ${resolveName(partnerEmail, conv)}`;
+  chatHeader.textContent = `Chat with ${partnerEmail}`;
   messageInput.disabled = false;
   sendBtn.disabled = false;
   messageInput.focus();
@@ -250,7 +179,7 @@ function renderMessages() {
   const user = getCurrentUser();
   if (!user || !currentChatPartner) return;
 
-  const conv = getConversationMap(user.email)[currentChatPartner];
+  const conv = getConversations().find(c => c.key === conversationKey(user.email, currentChatPartner));
   chatMessages.innerHTML = "";
 
   if (!conv || !conv.messages.length) {
@@ -260,14 +189,11 @@ function renderMessages() {
 
   conv.messages.forEach(msg => {
     const div = document.createElement("div");
-    div.classList.add("message", msg.sender === user.email ? "sent" : "received");
+    div.classList.add("message", msg.from === user.email ? "sent" : "received");
 
     let body = "";
-    if (msg.type === "image") {
+    if (msg.type === "photo") {
       body = `<div class="message-photo">${msg.content ? `<img src="${msg.content}" alt="Photo" />` : '<div class="photo-placeholder">Photo</div>'}</div>`;
-    } else if (msg.type === "video") {
-      const placeholder = '<div class="video-placeholder">Video</div>';
-      body = `<div class="message-video">${msg.content ? `<video src="${msg.content}" controls></video>` : placeholder}</div>`;
     } else if (msg.type === "voice") {
       body = `<div class="voice-chip">🎤 Voice message</div>`;
     } else {
@@ -287,12 +213,35 @@ function renderMessages() {
 }
 
 // --- Message helpers ---
+function addToUserMessages(ownerEmail, partnerEmail, msg) {
+  const users = getUsers();
+  let owner = users.find(u => u.email === ownerEmail);
+  if (!owner) {
+    owner = { email: ownerEmail, name: ownerEmail, messages: [] };
+    users.push(owner);
+  }
+
+  owner.messages = owner.messages || [];
+  let convo = owner.messages.find(c => c.with === partnerEmail);
+  if (!convo) {
+    convo = { with: partnerEmail, chat: [] };
+    owner.messages.push(convo);
+  }
+  convo.chat.push({ from: msg.from, text: msg.content || msg.text, time: msg.time, type: msg.type, timestamp: msg.timestamp });
+  saveUsers(users);
+
+  const current = getCurrentUser();
+  if (current && current.email === ownerEmail) {
+    localStorage.setItem("userProfile", JSON.stringify(owner));
+    localStorage.setItem("loggedInUser", JSON.stringify(owner));
+  }
+}
+
 function buildMessage(type, content) {
   const time = new Date();
-  const user = getCurrentUser();
   return {
     id: Date.now(),
-    sender: user?.email,
+    from: getCurrentUser().email,
     type,
     content,
     text: content,
@@ -305,24 +254,19 @@ function pushMessage(type, content) {
   const user = getCurrentUser();
   if (!user || !currentChatPartner) return;
 
+  const convo = ensureConversation(user.email, currentChatPartner);
   const msg = buildMessage(type, content);
-  ensureConversation(user.email, currentChatPartner);
-  ensureConversation(currentChatPartner, user.email, { name: user.name, profilePic: user.profilePic });
+  convo.messages.push(msg);
+  saveConversations(getConversations().map(c => (c.key === convo.key ? convo : c)));
 
-  const ownerMap = getConversationMap(user.email);
-  ownerMap[currentChatPartner].messages.push(msg);
-  saveConversationMap(user.email, ownerMap);
-
-  const partnerMap = getConversationMap(currentChatPartner);
-  if (!partnerMap[user.email]) partnerMap[user.email] = { partnerEmail: user.email, partnerName: user.name || user.email, messages: [] };
-  partnerMap[user.email].messages.push({ ...msg, sender: user.email });
-  saveConversationMap(currentChatPartner, partnerMap);
+  addToUserMessages(user.email, currentChatPartner, msg);
+  addToUserMessages(currentChatPartner, user.email, msg);
 
   addNotification(
     currentChatPartner,
     "message",
     "New Message",
-    `${user.name || user.email} sent you a ${type === "voice" ? "voice message" : type === "image" ? "image" : type === "video" ? "video" : "message"}.`
+    `${user.name || user.email} sent you a ${type === "voice" ? "voice message" : type === "photo" ? "photo" : "message"}.`
   );
 
   renderMessages();
@@ -372,6 +316,41 @@ videoInput?.addEventListener("change", e => {
   reader.onload = ev => {
     pushMessage("video", ev.target.result);
     videoInput.value = "";
+  };
+  reader.readAsDataURL(file);
+});
+
+// --- Send Message ---
+sendBtn.addEventListener("click", () => {
+  const text = messageInput.value.trim();
+  if (!text) return;
+  pushMessage("text", text);
+  messageInput.value = "";
+});
+
+messageInput.addEventListener("keypress", e => {
+  if (e.key === "Enter") {
+    e.preventDefault();
+    const text = messageInput.value.trim();
+    if (!text) return;
+    pushMessage("text", text);
+    messageInput.value = "";
+  }
+});
+
+voiceBtn?.addEventListener("click", () => {
+  pushMessage("voice", "Voice message");
+});
+
+photoBtn?.addEventListener("click", () => photoInput?.click());
+
+photoInput?.addEventListener("change", e => {
+  const file = e.target.files?.[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    pushMessage("photo", ev.target.result);
+    photoInput.value = "";
   };
   reader.readAsDataURL(file);
 });
